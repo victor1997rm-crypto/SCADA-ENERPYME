@@ -3078,6 +3078,14 @@ window.addEventListener('message', function(e){
   if(e.data &amp;&amp; e.data.type === 'control-estado'){
     _setGrabando(e.data.estado === 'grabando');
   }
+  if(e.data &amp;&amp; e.data.type === 'reset-diagrama'){
+    /* El supervisor pidió RESET: recargar esta página regresa todos
+       los interruptores/cuchillas exactamente al estado de fábrica
+       que trae el HTML horneado, sin tener que enumerar a mano cada
+       elemento de cada una de las 3 páginas (que además tienen
+       ids distintos entre sí). */
+    location.reload();
+  }
 });
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -6558,6 +6566,14 @@ window.addEventListener('message', function(e){
   if(e.data &amp;&amp; e.data.type === 'control-estado'){
     _setGrabando(e.data.estado === 'grabando');
   }
+  if(e.data &amp;&amp; e.data.type === 'reset-diagrama'){
+    /* El supervisor pidió RESET: recargar esta página regresa todos
+       los interruptores/cuchillas exactamente al estado de fábrica
+       que trae el HTML horneado, sin tener que enumerar a mano cada
+       elemento de cada una de las 3 páginas (que además tienen
+       ids distintos entre sí). */
+    location.reload();
+  }
 });
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -9502,6 +9518,14 @@ window.addEventListener('message', function(e){
   if(e.data &amp;&amp; e.data.type === 'control-estado'){
     _setGrabando(e.data.estado === 'grabando');
   }
+  if(e.data &amp;&amp; e.data.type === 'reset-diagrama'){
+    /* El supervisor pidió RESET: recargar esta página regresa todos
+       los interruptores/cuchillas exactamente al estado de fábrica
+       que trae el HTML horneado, sin tener que enumerar a mano cada
+       elemento de cada una de las 3 páginas (que además tienen
+       ids distintos entre sí). */
+    location.reload();
+  }
 });
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -11819,6 +11843,7 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
      y avisar a cada iframe para bloquear/desbloquear su CTL. El aviso
      "ESPERANDO AL SUPERVISOR" desaparece solo en cuanto el supervisor
      entra con el código en /monitor — no hace falta que dé INICIAR. ── */
+  var _resetTsInicial; // undefined = todavía no vimos el primer poll
   function _sincronizarControl(){
     if(!SESSION_CODE) { setTimeout(_sincronizarControl, 1000); return; }
     fetch('/api/control?code='+encodeURIComponent(SESSION_CODE))
@@ -11827,6 +11852,23 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
         var control = data && data.control;
         var grabando = !!(control && control.estado === 'grabando');
         var conectado = !!(control && control.supervisorConectado);
+
+        /* Si el supervisor dio RESET (resetTs cambió respecto al primer
+           poll que vimos), regresar cada página a su estado original
+           recargándola — así se garantiza que TODOS los switches que
+           el operador haya movido vuelvan exactamente a lo que trae
+           el HTML de fábrica. El primer poll de la sesión solo fija
+           la base de comparación, nunca recarga por sí solo. */
+        var resetTsActual = control ? (control.resetTs || 0) : 0;
+        if(_resetTsInicial === undefined){
+          _resetTsInicial = resetTsActual;
+        } else if(resetTsActual !== _resetTsInicial){
+          _resetTsInicial = resetTsActual;
+          pages.forEach(function(p){
+            if(p.contentWindow) p.contentWindow.postMessage({type:'reset-diagrama'}, '*');
+          });
+        }
+
         pages.forEach(function(p){
           if(p.contentWindow) p.contentWindow.postMessage({type:'control-estado', estado: control ? control.estado : 'espera'}, '*');
         });
