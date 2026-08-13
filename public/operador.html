@@ -3053,11 +3053,24 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
     return elId;
   }
 
-  function envolverEjecutarManiobra(){
-    if(typeof ejecutarManiobra !== 'function') return false;
-    var _orig = ejecutarManiobra;
-    ejecutarManiobra = function(){
-      var el = (typeof equipoSeleccionado !== 'undefined') ? equipoSeleccionado : null;
+  function _obtenerEquipoSel(){
+    if(typeof equipoSeleccionado !== 'undefined' &amp;&amp; equipoSeleccionado) return equipoSeleccionado;
+    if(typeof equipoSeleccionado345 !== 'undefined' &amp;&amp; equipoSeleccionado345) return equipoSeleccionado345;
+    return null;
+  }
+
+  /* Cada página (400/115/34.5kV) nombra distinto la función que hace
+     el toggle real (ejecutarManiobra, o todo inline, o ejecutarManiobra345
+     con su propia variable equipoSeleccionado345). La única función con
+     el MISMO nombre en las 3 páginas es ejecutarDesdeModal(accion), que
+     es la que llama el botón del modal — así que envolvemos esa,
+     comparando el estado antes/después en vez de depender de la
+     función interna específica de cada página. */
+  function envolverEjecutarDesdeModal(){
+    if(typeof ejecutarDesdeModal !== 'function') return false;
+    var _orig = ejecutarDesdeModal;
+    ejecutarDesdeModal = function(accion){
+      var el = _obtenerEquipoSel();
       var antes = el ? (el.classList.contains('closed') ? 'CERRADO' : 'ABIERTO') : null;
       _orig.apply(this, arguments);
       if(el &amp;&amp; window.__sessionCode){
@@ -3080,8 +3093,8 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
     };
     return true;
   }
-  if(!envolverEjecutarManiobra()){
-    document.addEventListener('DOMContentLoaded', envolverEjecutarManiobra);
+  if(!envolverEjecutarDesdeModal()){
+    document.addEventListener('DOMContentLoaded', envolverEjecutarDesdeModal);
   }
 })();
 </script>
@@ -6430,16 +6443,29 @@ window.addEventListener('message', function(e){
 window.__paginaNombre = &quot;115kV&quot;;
 window.__sessionCode = null;
 
-/* Antes, el operador solo podía maniobrar si el panel ENTRENADOR
-   local decía &quot;GRABANDO&quot; (variable libGrabando). Ese panel ahora
-   vive en /monitor, no aquí — así que forzamos libGrabando=true
-   para que el operador SIEMPRE pueda abrir el modal y maniobrar,
-   sin depender de si el supervisor le dio INICIAR o no. */
-function _forzarGrabando(){
-  try{ libGrabando = true; }catch(e){ window.libGrabando = true; }
+/* El CTL solo debe reaccionar (abrir el modal) cuando el SUPERVISOR
+   dio INICIAR desde /monitor — se consulta el estado real cada
+   ~1.2s vía /api/control y se sincroniza la variable local
+   libGrabando, que es la que solicitarConfirmacion() revisa. */
+function _sincronizarEstadoGrabando(){
+  if(!window.__sessionCode) { setTimeout(_sincronizarEstadoGrabando, 1000); return; }
+  fetch('/api/control?code='+encodeURIComponent(window.__sessionCode))
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(data){
+      var grabando = !!(data &amp;&amp; data.control &amp;&amp; data.control.estado === 'grabando');
+      try{ libGrabando = grabando; }catch(e){ window.libGrabando = grabando; }
+      var badge = document.getElementById('estado-ejercicio-badge');
+      if(badge){
+        badge.textContent = grabando ? 'EJERCICIO EN CURSO — CTL DESBLOQUEADO' : 'ESPERANDO AL SUPERVISOR...';
+        badge.style.background = grabando ? 'rgba(0,180,60,.18)' : 'rgba(255,150,0,.18)';
+        badge.style.color = grabando ? '#00ee66' : '#ffaa33';
+        badge.style.borderColor = grabando ? 'rgba(0,220,80,.4)' : 'rgba(255,170,0,.4)';
+      }
+    })
+    .catch(function(){});
+  setTimeout(_sincronizarEstadoGrabando, 1200);
 }
-_forzarGrabando();
-document.addEventListener('DOMContentLoaded', _forzarGrabando);
+_sincronizarEstadoGrabando();
 
 window.addEventListener('message', function(e){
   if(e.data &amp;&amp; e.data.type === 'session-code'){
@@ -6472,11 +6498,24 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
     return elId;
   }
 
-  function envolverEjecutarManiobra(){
-    if(typeof ejecutarManiobra !== 'function') return false;
-    var _orig = ejecutarManiobra;
-    ejecutarManiobra = function(){
-      var el = (typeof equipoSeleccionado !== 'undefined') ? equipoSeleccionado : null;
+  function _obtenerEquipoSel(){
+    if(typeof equipoSeleccionado !== 'undefined' &amp;&amp; equipoSeleccionado) return equipoSeleccionado;
+    if(typeof equipoSeleccionado345 !== 'undefined' &amp;&amp; equipoSeleccionado345) return equipoSeleccionado345;
+    return null;
+  }
+
+  /* Cada página (400/115/34.5kV) nombra distinto la función que hace
+     el toggle real (ejecutarManiobra, o todo inline, o ejecutarManiobra345
+     con su propia variable equipoSeleccionado345). La única función con
+     el MISMO nombre en las 3 páginas es ejecutarDesdeModal(accion), que
+     es la que llama el botón del modal — así que envolvemos esa,
+     comparando el estado antes/después en vez de depender de la
+     función interna específica de cada página. */
+  function envolverEjecutarDesdeModal(){
+    if(typeof ejecutarDesdeModal !== 'function') return false;
+    var _orig = ejecutarDesdeModal;
+    ejecutarDesdeModal = function(accion){
+      var el = _obtenerEquipoSel();
       var antes = el ? (el.classList.contains('closed') ? 'CERRADO' : 'ABIERTO') : null;
       _orig.apply(this, arguments);
       if(el &amp;&amp; window.__sessionCode){
@@ -6499,8 +6538,8 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
     };
     return true;
   }
-  if(!envolverEjecutarManiobra()){
-    document.addEventListener('DOMContentLoaded', envolverEjecutarManiobra);
+  if(!envolverEjecutarDesdeModal()){
+    document.addEventListener('DOMContentLoaded', envolverEjecutarDesdeModal);
   }
 })();
 </script>
@@ -9312,16 +9351,29 @@ window.addEventListener('message', function(e){
 window.__paginaNombre = &quot;345kV&quot;;
 window.__sessionCode = null;
 
-/* Antes, el operador solo podía maniobrar si el panel ENTRENADOR
-   local decía &quot;GRABANDO&quot; (variable libGrabando). Ese panel ahora
-   vive en /monitor, no aquí — así que forzamos libGrabando=true
-   para que el operador SIEMPRE pueda abrir el modal y maniobrar,
-   sin depender de si el supervisor le dio INICIAR o no. */
-function _forzarGrabando(){
-  try{ libGrabando = true; }catch(e){ window.libGrabando = true; }
+/* El CTL solo debe reaccionar (abrir el modal) cuando el SUPERVISOR
+   dio INICIAR desde /monitor — se consulta el estado real cada
+   ~1.2s vía /api/control y se sincroniza la variable local
+   libGrabando, que es la que solicitarConfirmacion() revisa. */
+function _sincronizarEstadoGrabando(){
+  if(!window.__sessionCode) { setTimeout(_sincronizarEstadoGrabando, 1000); return; }
+  fetch('/api/control?code='+encodeURIComponent(window.__sessionCode))
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(data){
+      var grabando = !!(data &amp;&amp; data.control &amp;&amp; data.control.estado === 'grabando');
+      try{ libGrabando = grabando; }catch(e){ window.libGrabando = grabando; }
+      var badge = document.getElementById('estado-ejercicio-badge');
+      if(badge){
+        badge.textContent = grabando ? 'EJERCICIO EN CURSO — CTL DESBLOQUEADO' : 'ESPERANDO AL SUPERVISOR...';
+        badge.style.background = grabando ? 'rgba(0,180,60,.18)' : 'rgba(255,150,0,.18)';
+        badge.style.color = grabando ? '#00ee66' : '#ffaa33';
+        badge.style.borderColor = grabando ? 'rgba(0,220,80,.4)' : 'rgba(255,170,0,.4)';
+      }
+    })
+    .catch(function(){});
+  setTimeout(_sincronizarEstadoGrabando, 1200);
 }
-_forzarGrabando();
-document.addEventListener('DOMContentLoaded', _forzarGrabando);
+_sincronizarEstadoGrabando();
 
 window.addEventListener('message', function(e){
   if(e.data &amp;&amp; e.data.type === 'session-code'){
@@ -9354,11 +9406,24 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
     return elId;
   }
 
-  function envolverEjecutarManiobra(){
-    if(typeof ejecutarManiobra !== 'function') return false;
-    var _orig = ejecutarManiobra;
-    ejecutarManiobra = function(){
-      var el = (typeof equipoSeleccionado !== 'undefined') ? equipoSeleccionado : null;
+  function _obtenerEquipoSel(){
+    if(typeof equipoSeleccionado !== 'undefined' &amp;&amp; equipoSeleccionado) return equipoSeleccionado;
+    if(typeof equipoSeleccionado345 !== 'undefined' &amp;&amp; equipoSeleccionado345) return equipoSeleccionado345;
+    return null;
+  }
+
+  /* Cada página (400/115/34.5kV) nombra distinto la función que hace
+     el toggle real (ejecutarManiobra, o todo inline, o ejecutarManiobra345
+     con su propia variable equipoSeleccionado345). La única función con
+     el MISMO nombre en las 3 páginas es ejecutarDesdeModal(accion), que
+     es la que llama el botón del modal — así que envolvemos esa,
+     comparando el estado antes/después en vez de depender de la
+     función interna específica de cada página. */
+  function envolverEjecutarDesdeModal(){
+    if(typeof ejecutarDesdeModal !== 'function') return false;
+    var _orig = ejecutarDesdeModal;
+    ejecutarDesdeModal = function(accion){
+      var el = _obtenerEquipoSel();
       var antes = el ? (el.classList.contains('closed') ? 'CERRADO' : 'ABIERTO') : null;
       _orig.apply(this, arguments);
       if(el &amp;&amp; window.__sessionCode){
@@ -9381,8 +9446,8 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
     };
     return true;
   }
-  if(!envolverEjecutarManiobra()){
-    document.addEventListener('DOMContentLoaded', envolverEjecutarManiobra);
+  if(!envolverEjecutarDesdeModal()){
+    document.addEventListener('DOMContentLoaded', envolverEjecutarDesdeModal);
   }
 })();
 </script>
