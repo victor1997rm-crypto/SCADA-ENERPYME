@@ -11,6 +11,22 @@
 <body><div id="shell"><iframe id="page-400kV" class="scada-page" data-page="400kV" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;display:block;" srcdoc="<!DOCTYPE html>
 <html lang=&quot;es&quot;>
 <head>
+<script>
+/* Las posiciones de esta página ya quedaron fijas (&quot;horneadas&quot;) en el
+   HTML — este simulador ya NO debe leer calibraciones guardadas en
+   localStorage (de pruebas anteriores, de este navegador o de
+   cualquier otro), porque eso pisa los valores fijos con lo que sea
+   que haya quedado guardado ahí. Se limpia ANTES de que corra
+   cualquier otro script de la página, incluida la restauración de
+   posiciones que trae el propio simulador. */
+try{
+  ['enerpyme_400kv_posiciones_v1','enerpyme_115kv_posiciones_v1',
+   '115kv_pos_v1','115kv_bh2_v1','115kv_reloj_pos',
+   '345kv_pos_v1','345kv_elem_pos_v1'
+  ].forEach(function(k){ localStorage.removeItem(k); });
+}catch(e){}
+</script>
+
   <meta charset=&quot;UTF-8&quot;>
   <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, maximum-scale=1.0&quot;>
   <title>Simulador SCADA — Subestación 400 kV</title>
@@ -3081,6 +3097,22 @@ window.addEventListener('message', function(e){
 <iframe id="page-115kV" class="scada-page" data-page="115kV" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;display:none;" srcdoc="<!DOCTYPE html>
 <html lang=&quot;es&quot;>
 <head>
+<script>
+/* Las posiciones de esta página ya quedaron fijas (&quot;horneadas&quot;) en el
+   HTML — este simulador ya NO debe leer calibraciones guardadas en
+   localStorage (de pruebas anteriores, de este navegador o de
+   cualquier otro), porque eso pisa los valores fijos con lo que sea
+   que haya quedado guardado ahí. Se limpia ANTES de que corra
+   cualquier otro script de la página, incluida la restauración de
+   posiciones que trae el propio simulador. */
+try{
+  ['enerpyme_400kv_posiciones_v1','enerpyme_115kv_posiciones_v1',
+   '115kv_pos_v1','115kv_bh2_v1','115kv_reloj_pos',
+   '345kv_pos_v1','345kv_elem_pos_v1'
+  ].forEach(function(k){ localStorage.removeItem(k); });
+}catch(e){}
+</script>
+
   <meta charset=&quot;UTF-8&quot;>
   <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, maximum-scale=1.0&quot;>
   <title>Simulador SCADA — S.E. ENERPYME 115 kV</title>
@@ -6486,6 +6518,22 @@ window.addEventListener('message', function(e){
 <iframe id="page-345kV" class="scada-page" data-page="345kV" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;display:none;" srcdoc="<!DOCTYPE html>
 <html lang=&quot;es&quot;>
 <head>
+<script>
+/* Las posiciones de esta página ya quedaron fijas (&quot;horneadas&quot;) en el
+   HTML — este simulador ya NO debe leer calibraciones guardadas en
+   localStorage (de pruebas anteriores, de este navegador o de
+   cualquier otro), porque eso pisa los valores fijos con lo que sea
+   que haya quedado guardado ahí. Se limpia ANTES de que corra
+   cualquier otro script de la página, incluida la restauración de
+   posiciones que trae el propio simulador. */
+try{
+  ['enerpyme_400kv_posiciones_v1','enerpyme_115kv_posiciones_v1',
+   '115kv_pos_v1','115kv_bh2_v1','115kv_reloj_pos',
+   '345kv_pos_v1','345kv_elem_pos_v1'
+  ].forEach(function(k){ localStorage.removeItem(k); });
+}catch(e){}
+</script>
+
   <meta charset=&quot;UTF-8&quot;>
   <meta name=&quot;viewport&quot; content=&quot;width=1280&quot;>
   <title>S.E. ENERPYME 34.5 kV</title>
