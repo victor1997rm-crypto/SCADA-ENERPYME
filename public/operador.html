@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
+<html lang="es"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sistema SCADA Ammper — S.E. ENERPYME</title>
 <style>
@@ -9,11 +7,8 @@
   html, body { width:100%; height:100%; overflow:hidden; background:#060a0f; font-family:Arial,sans-serif; }
   #shell { position:relative; width:100%; height:100%; }
   .scada-page { position:absolute; top:0; left:0; }
-</style>
-</head>
-<body>
-<div id="shell">
-<iframe id="page-400kV" class="scada-page" data-page="400kV" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;display:block;" srcdoc="<!DOCTYPE html>
+</style></head>
+<body><div id="shell"><iframe id="page-400kV" class="scada-page" data-page="400kV" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;display:block;" srcdoc="<!DOCTYPE html>
 <html lang=&quot;es&quot;>
 <head>
   <meta charset=&quot;UTF-8&quot;>
@@ -3003,16 +2998,29 @@ document.getElementById('wrap').addEventListener('mousedown',function(e){
 window.__paginaNombre = &quot;400kV&quot;;
 window.__sessionCode = null;
 
-/* Antes, el operador solo podía maniobrar si el panel ENTRENADOR
-   local decía &quot;GRABANDO&quot; (variable libGrabando). Ese panel ahora
-   vive en /monitor, no aquí — así que forzamos libGrabando=true
-   para que el operador SIEMPRE pueda abrir el modal y maniobrar,
-   sin depender de si el supervisor le dio INICIAR o no. */
-function _forzarGrabando(){
-  try{ libGrabando = true; }catch(e){ window.libGrabando = true; }
+/* El CTL solo debe reaccionar (abrir el modal) cuando el SUPERVISOR
+   dio INICIAR desde /monitor — se consulta el estado real cada
+   ~1.2s vía /api/control y se sincroniza la variable local
+   libGrabando, que es la que solicitarConfirmacion() revisa. */
+function _sincronizarEstadoGrabando(){
+  if(!window.__sessionCode) { setTimeout(_sincronizarEstadoGrabando, 1000); return; }
+  fetch('/api/control?code='+encodeURIComponent(window.__sessionCode))
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(data){
+      var grabando = !!(data &amp;&amp; data.control &amp;&amp; data.control.estado === 'grabando');
+      try{ libGrabando = grabando; }catch(e){ window.libGrabando = grabando; }
+      var badge = document.getElementById('estado-ejercicio-badge');
+      if(badge){
+        badge.textContent = grabando ? 'EJERCICIO EN CURSO — CTL DESBLOQUEADO' : 'ESPERANDO AL SUPERVISOR...';
+        badge.style.background = grabando ? 'rgba(0,180,60,.18)' : 'rgba(255,150,0,.18)';
+        badge.style.color = grabando ? '#00ee66' : '#ffaa33';
+        badge.style.borderColor = grabando ? 'rgba(0,220,80,.4)' : 'rgba(255,170,0,.4)';
+      }
+    })
+    .catch(function(){});
+  setTimeout(_sincronizarEstadoGrabando, 1200);
 }
-_forzarGrabando();
-document.addEventListener('DOMContentLoaded', _forzarGrabando);
+_sincronizarEstadoGrabando();
 
 window.addEventListener('message', function(e){
   if(e.data &amp;&amp; e.data.type === 'session-code'){
@@ -11546,8 +11554,7 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
 </script>
 </body>
 </html>
-"></iframe>
-</div>
+"></iframe></div>
 <div id="codigo-banner" style="position:fixed;top:8px;right:8px;z-index:99999;
   background:rgba(10,20,30,.92);border:1px solid rgba(0,220,255,.4);border-radius:6px;
   padding:8px 14px;color:#7ee8ff;font-size:12px;box-shadow:0 2px 10px rgba(0,0,0,.5);
@@ -11560,6 +11567,10 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
     style="background:transparent;border:none;color:#8fb0bd;font-size:14px;cursor:pointer;
     padding:0 2px;line-height:1;">✕</button>
 </div>
+<div id="estado-ejercicio-badge" style="position:fixed;top:52px;right:8px;z-index:99999;
+  background:rgba(255,150,0,.18);border:1px solid rgba(255,170,0,.4);border-radius:6px;
+  padding:5px 12px;color:#ffaa33;font-size:10px;font-weight:700;letter-spacing:.04em;
+  box-shadow:0 2px 10px rgba(0,0,0,.5);">ESPERANDO AL SUPERVISOR...</div>
 <script>
 (function(){
   var pages = document.querySelectorAll('.scada-page');
@@ -11621,8 +11632,6 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
     if(e.data.type === 'ammper-jump-to-page'){
       var target = e.data.page;
       pages.forEach(function(p){ p.style.display = (p.dataset.page === target) ? 'block' : 'none'; });
-      var btnAlm = document.getElementById('btn-abrir-alarmas');
-      if(btnAlm) btnAlm.style.display = (target === 'GENERAL') ? 'block' : 'none';
       return;
     }
     if(e.data.type === 'ammper-alarma'){
@@ -11656,12 +11665,11 @@ if(document.getElementById('lib-panel')) document.getElementById('lib-panel').st
 </script>
 
 <button id="btn-abrir-alarmas" onclick="window.__abrirAlarmasManual && window.__abrirAlarmasManual()"
-  style="position:fixed;right:10px;bottom:10px;z-index:9999;display:none;
+  style="position:fixed;right:10px;bottom:10px;z-index:9999;display:block;
          background:#1a2a3d;color:#9fd6ff;border:1px solid #3a6fd8;
          padding:8px 14px;border-radius:4px;font-family:Arial,sans-serif;
          font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);">
   Abrir pantalla de Alarmas
 </button>
 
-</body>
-</html>
+</body></html>
