@@ -7185,6 +7185,9 @@ try{
       background:transparent;
       z-index:4;
       box-sizing:border-box;
+      pointer-events:none; /* deja pasar los clics a lo que está debajo —
+        el cuadro solo se mueve/redimensiona por sus manijas (.cq-handle),
+        nunca agarrando el cuerpo, así que no hace falta que lo intercepte */
     }
     /* Handles de esquina y borde */
     .cq-handle {
@@ -7194,6 +7197,7 @@ try{
       border:2px solid #ffcc00;
       border-radius:50%;
       z-index:600;
+      pointer-events:auto;
       display:none;
     }
     .cq-nw  { top:-6px;  left:-6px;  cursor:nw-resize; }
@@ -8258,15 +8262,25 @@ function _initExportImport345(){
   var btnExp=document.getElementById('btn-export-pos');
   var btnImp=document.getElementById('btn-import-pos');
   var inpImp=document.getElementById('input-import-pos');
-  if(btnExp) btnExp.addEventListener('click',function(){
-    var pos={};
-    document.querySelectorAll('.lv345,.lh345').forEach(function(el){
-      pos[el.id]={left:el.style.left,top:el.style.top,
-                  width:el.style.width,height:el.style.height};
-    });
-    var a=document.createElement('a');
-    a.href=URL.createObjectURL(new Blob([JSON.stringify(pos,null,2)],{type:'application/json'}));
-    a.download='enerpyme_345kv_pos.json'; a.click();
+  document.getElementById('btn-export-pos').addEventListener('click',function(){
+    try{
+      var data={};
+      ['345kv_pos_v1','345kv_elem_pos_v1','345kv_reloj_pos'].forEach(function(k){
+        var v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v);
+      });
+      /* Tambien capturar directo del DOM por si algo no se guardó aún en
+         localStorage (ej. si no se soltó el drag antes de exportar). */
+      var posL={};
+      document.querySelectorAll('.lv345,.lh345').forEach(function(el){
+        posL[el.id]={left:el.style.left,top:el.style.top,
+                     width:el.style.width,height:el.style.height};
+      });
+      data['345kv_pos_v1']=posL;
+      var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='enerpyme_345kv_pos.json'; a.click();
+    }catch(e){ alert('Error al exportar: '+e.message); }
   });
   if(btnImp&amp;&amp;inpImp){
     btnImp.addEventListener('click',function(){ inpImp.click(); });
