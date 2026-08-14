@@ -3027,15 +3027,33 @@ document.getElementById('wrap').addEventListener('mousedown',function(e){
   function ajustarAnchoChannelStatus(){
     var title = document.getElementById('cs-title-text');
     var box = document.getElementById('cs-dashed-box');
+    var wrap = document.getElementById('wrap');
     if(!title || !box) return;
+    /* title/box viven dentro de #wrap, que tiene su propio
+       transform:scale(). getBoundingClientRect() da píxeles YA
+       escalados en pantalla — si asignamos ese valor directo como
+       box.style.width, la escala se aplica una SEGUNDA vez (porque
+       box también está dentro de #wrap), encogiendo o agrandando de
+       más según la pantalla. Hay que devolver la medición a espacio
+       &quot;local&quot; (sin escalar) dividiendo entre la escala actual. */
+    var escala = 1;
+    if(wrap){
+      var m = getComputedStyle(wrap).transform.match(/matrix\(([^,]+),/);
+      if(m) escala = parseFloat(m[1]) || 1;
+    }
     var titleRight = title.getBoundingClientRect().right;
     var boxLeft = box.getBoundingClientRect().left;
-    var w = titleRight - boxLeft;
+    var w = (titleRight - boxLeft) / escala;
     box.style.width = w + 'px';
   }
   window.addEventListener('load', ajustarAnchoChannelStatus);
   window.addEventListener('resize', ajustarAnchoChannelStatus);
+  window.addEventListener('message', function(e){
+    if(e.data &amp;&amp; e.data.type === 'recalcular-escala') setTimeout(ajustarAnchoChannelStatus, 20);
+  });
   document.addEventListener('DOMContentLoaded', ajustarAnchoChannelStatus);
+  setTimeout(ajustarAnchoChannelStatus, 100);
+  setTimeout(ajustarAnchoChannelStatus, 350);
 })();
 </script>
 
@@ -6446,15 +6464,33 @@ document.getElementById('input-import-pos').addEventListener('change',function(e
   function ajustarAnchoChannelStatus(){
     var title = document.getElementById('cs-title-text');
     var box = document.getElementById('cs-dashed-box');
+    var wrap = document.getElementById('wrap');
     if(!title || !box) return;
+    /* title/box viven dentro de #wrap, que tiene su propio
+       transform:scale(). getBoundingClientRect() da píxeles YA
+       escalados en pantalla — si asignamos ese valor directo como
+       box.style.width, la escala se aplica una SEGUNDA vez (porque
+       box también está dentro de #wrap), encogiendo o agrandando de
+       más según la pantalla. Hay que devolver la medición a espacio
+       &quot;local&quot; (sin escalar) dividiendo entre la escala actual. */
+    var escala = 1;
+    if(wrap){
+      var m = getComputedStyle(wrap).transform.match(/matrix\(([^,]+),/);
+      if(m) escala = parseFloat(m[1]) || 1;
+    }
     var titleRight = title.getBoundingClientRect().right;
     var boxLeft = box.getBoundingClientRect().left;
-    var w = titleRight - boxLeft;
+    var w = (titleRight - boxLeft) / escala;
     box.style.width = w + 'px';
   }
   window.addEventListener('load', ajustarAnchoChannelStatus);
   window.addEventListener('resize', ajustarAnchoChannelStatus);
+  window.addEventListener('message', function(e){
+    if(e.data &amp;&amp; e.data.type === 'recalcular-escala') setTimeout(ajustarAnchoChannelStatus, 20);
+  });
   document.addEventListener('DOMContentLoaded', ajustarAnchoChannelStatus);
+  setTimeout(ajustarAnchoChannelStatus, 100);
+  setTimeout(ajustarAnchoChannelStatus, 350);
 })();
 </script>
 
@@ -9438,15 +9474,33 @@ function reproducirSonido(elemId, abre){
   function ajustarAnchoChannelStatus(){
     var title = document.getElementById('cs-title-text');
     var box = document.getElementById('cs-dashed-box');
+    var wrap = document.getElementById('wrap');
     if(!title || !box) return;
+    /* title/box viven dentro de #wrap, que tiene su propio
+       transform:scale(). getBoundingClientRect() da píxeles YA
+       escalados en pantalla — si asignamos ese valor directo como
+       box.style.width, la escala se aplica una SEGUNDA vez (porque
+       box también está dentro de #wrap), encogiendo o agrandando de
+       más según la pantalla. Hay que devolver la medición a espacio
+       &quot;local&quot; (sin escalar) dividiendo entre la escala actual. */
+    var escala = 1;
+    if(wrap){
+      var m = getComputedStyle(wrap).transform.match(/matrix\(([^,]+),/);
+      if(m) escala = parseFloat(m[1]) || 1;
+    }
     var titleRight = title.getBoundingClientRect().right;
     var boxLeft = box.getBoundingClientRect().left;
-    var w = titleRight - boxLeft;
+    var w = (titleRight - boxLeft) / escala;
     box.style.width = w + 'px';
   }
   window.addEventListener('load', ajustarAnchoChannelStatus);
   window.addEventListener('resize', ajustarAnchoChannelStatus);
+  window.addEventListener('message', function(e){
+    if(e.data &amp;&amp; e.data.type === 'recalcular-escala') setTimeout(ajustarAnchoChannelStatus, 20);
+  });
   document.addEventListener('DOMContentLoaded', ajustarAnchoChannelStatus);
+  setTimeout(ajustarAnchoChannelStatus, 100);
+  setTimeout(ajustarAnchoChannelStatus, 350);
 })();
 </script>
 
@@ -11391,7 +11445,17 @@ window.addEventListener('message', function(e){
   function csAjustarEscala(){
     var w = canvasWrap ? canvasWrap.clientWidth : 0;
     if(!w) return;
+    /* 0.6 es el tamaño de referencia ya validado en pantallas grandes
+       (~1920px+). Nunca debe encogerse por debajo de eso en pantallas
+       de ese rango — solo crecer proporcionalmente en pantallas más
+       grandes, y sí encogerse en pantallas genuinamente más chicas
+       (donde igual hace falta para no desbordar). */
     var escala = 0.6 * (w / CS_REF_WIDTH);
+    /* Umbral más permisivo (1600, no 1918 exacto): un navegador en
+       pantalla completa sobre un monitor de &quot;1920px&quot; normalmente
+       reporta un poco menos por bordes/barra de tareas — no debe
+       perder el piso de 0.6 por esos pixeles de diferencia. */
+    if(w >= 1600) escala = Math.max(escala, 0.6);
     csWidget.style.transform = 'scale(' + escala + ')';
   }
   if(typeof ResizeObserver !== 'undefined' &amp;&amp; canvasWrap){
