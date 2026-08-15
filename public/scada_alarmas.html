@@ -563,23 +563,152 @@ window.addEventListener('message', (e) => {
 (function(){
   var BASE_W = 1600, BASE_H = 1000;
   var wrap = document.getElementById('scale-wrap');
+  var contenedor = document.body;
 
-  function ajustar(){
+  var escalaActual = 1;
+  var zoom = 1; // factor de zoom manual (pellizco con dos dedos)
+  var wrapLeft = 0, wrapTop = 0;
+  var baseLeft = 0, baseTop = 0; // posición centrada "de reposo", sin arrastre
+  var panMinX = 0, panMaxX = 0, panMinY = 0, panMaxY = 0;
+
+  function aplicarPosicion(){
+    wrap.style.left = wrapLeft + 'px';
+    wrap.style.top  = wrapTop + 'px';
+    wrap.style.transform = 'scale(' + escalaActual + ')';
+  }
+
+  // Calcula escala y límites válidos para el zoom actual, SIN tocar la
+  // posición — se reutiliza al redimensionar (con recentrado) y durante
+  // el pellizco de zoom con los dedos (sin recentrar).
+  function recalcularEscalaYLimites(){
     var vw = window.innerWidth;
     var vh = window.innerHeight;
-    // Math.max = "cover": llena toda la pantalla sin dejar espacio en
-    // negro, aunque eso signifique recortar un poco de sobra en un eje.
-    var scale = Math.max(vw / BASE_W, vh / BASE_H);
-    var offsetX = (vw - BASE_W * scale) / 2;
-    var offsetY = (vh - BASE_H * scale) / 2;
-    wrap.style.transform = 'scale(' + scale + ')';
-    wrap.style.left = offsetX + 'px';
-    wrap.style.top = offsetY + 'px';
+    if(vw <= 0 || vh <= 0) return false;
+    // "Cover": llena toda la pantalla sin dejar espacio en negro.
+    var escala = Math.max(vw / BASE_W, vh / BASE_H) * zoom;
+    escalaActual = escala;
+    var scaledW = BASE_W * escala, scaledH = BASE_H * escala;
+    panMinX = Math.min(0, vw - scaledW);
+    panMaxX = 0;
+    panMinY = Math.min(0, vh - scaledH);
+    panMaxY = 0;
+    return true;
+  }
+
+  function ajustar(){
+    if(!recalcularEscalaYLimites()) return;
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var scaledW = BASE_W * escalaActual, scaledH = BASE_H * escalaActual;
+    // Recentrar cada vez que cambia el tamaño (p.ej. al girar el celular).
+    baseLeft = (vw - scaledW) / 2;
+    baseTop  = (vh - scaledH) / 2;
+    wrapLeft = baseLeft;
+    wrapTop  = baseTop;
+    aplicarPosicion();
   }
 
   window.addEventListener('resize', ajustar);
   window.addEventListener('load', ajustar);
   ajustar();
+  setTimeout(ajustar, 50);
+  setTimeout(ajustar, 300);
+
+  // ---------- arrastrar la pantalla de alarmas con el dedo/mouse, y
+  //            hacer zoom con dos dedos (pellizco) — igual que en las
+  //            4 páginas del SCADA, para poder desplazarse en celular
+  //            cuando la pantalla no cabe completa. ----------
+  (function habilitarArrastreYZoom(){
+    var UMBRAL_PX = 6;
+    var ZOOM_MIN = 1, ZOOM_MAX = 4;
+    var activos = {}; var ordenIds = [];
+    var posible = false, arrastrando = false;
+    var startX = 0, startY = 0, startLeft = 0, startTop = 0;
+    var pellizcando = false, distInicial = 0, zoomInicial = 1, fxAncla = 0, fyAncla = 0;
+
+    function distanciaEntre(p1, p2){
+      var dx = p2.x - p1.x, dy = p2.y - p1.y;
+      return Math.sqrt(dx*dx + dy*dy);
+    }
+    function contarActivos(){ return ordenIds.length; }
+
+    function onDown(e){
+      activos[e.pointerId] = {x: e.clientX, y: e.clientY};
+      if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
+      try{ contenedor.setPointerCapture(e.pointerId); }catch(err){}
+      if(contarActivos() === 2){
+        posible = false; arrastrando = false; pellizcando = true;
+        var p1 = activos[ordenIds[0]], p2 = activos[ordenIds[1]];
+        distInicial = distanciaEntre(p1, p2);
+        zoomInicial = zoom;
+        var midX0 = (p1.x + p2.x) / 2, midY0 = (p1.y + p2.y) / 2;
+        fxAncla = (midX0 - wrapLeft) / escalaActual;
+        fyAncla = (midY0 - wrapTop) / escalaActual;
+      } else if(contarActivos() === 1){
+        pellizcando = false;
+        posible = true; arrastrando = false;
+        startX = e.clientX; startY = e.clientY;
+        startLeft = wrapLeft; startTop = wrapTop;
+      }
+    }
+
+    function onMove(e){
+      if(!activos[e.pointerId]) return;
+      activos[e.pointerId] = {x: e.clientX, y: e.clientY};
+
+      if(pellizcando && contarActivos() >= 2){
+        var p1 = activos[ordenIds[0]], p2 = activos[ordenIds[1]];
+        var distActual = distanciaEntre(p1, p2);
+        var midX = (p1.x + p2.x) / 2;
+        var midY = (p1.y + p2.y) / 2;
+        if(distInicial > 0){
+          var factor = distActual / distInicial;
+          zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomInicial * factor));
+          recalcularEscalaYLimites();
+          wrapLeft = midX - fxAncla * escalaActual;
+          wrapTop  = midY - fyAncla * escalaActual;
+          wrapLeft = Math.min(panMaxX, Math.max(panMinX, wrapLeft));
+          wrapTop  = Math.min(panMaxY, Math.max(panMinY, wrapTop));
+          aplicarPosicion();
+        }
+        e.preventDefault();
+        return;
+      }
+
+      if(!posible) return;
+      var dx = e.clientX - startX;
+      var dy = e.clientY - startY;
+      if(!arrastrando){
+        if(Math.abs(dx) < UMBRAL_PX && Math.abs(dy) < UMBRAL_PX) return;
+        arrastrando = true;
+        contenedor.style.cursor = 'grabbing';
+      }
+      wrapLeft = Math.min(panMaxX, Math.max(panMinX, startLeft + dx));
+      wrapTop  = Math.min(panMaxY, Math.max(panMinY, startTop + dy));
+      aplicarPosicion();
+      e.preventDefault();
+    }
+
+    function onUp(e){
+      delete activos[e.pointerId];
+      var idx = ordenIds.indexOf(e.pointerId);
+      if(idx !== -1) ordenIds.splice(idx, 1);
+      if(contarActivos() < 2) pellizcando = false;
+      if(contarActivos() === 1){
+        var pt = activos[ordenIds[0]];
+        posible = true; arrastrando = false;
+        startX = pt.x; startY = pt.y;
+        startLeft = wrapLeft; startTop = wrapTop;
+      } else if(contarActivos() === 0){
+        posible = false; arrastrando = false;
+        contenedor.style.cursor = '';
+      }
+    }
+    contenedor.style.touchAction = 'none';
+    contenedor.addEventListener('pointerdown', onDown);
+    contenedor.addEventListener('pointermove', onMove);
+    contenedor.addEventListener('pointerup', onUp);
+    contenedor.addEventListener('pointercancel', onUp);
+  })();
 })();
 </script>
 </body>
