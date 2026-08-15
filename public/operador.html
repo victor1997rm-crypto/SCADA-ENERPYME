@@ -257,7 +257,7 @@ try{
     #scada-header {
       position: relative; width: 100%; height: 44px; flex-shrink: 0;
       background: #000; display: flex; align-items: center; overflow: hidden;
-      font-family: Arial, sans-serif;
+      font-family: Arial, sans-serif; z-index: 100;
     }
     #scada-header::before {
       content: &quot;&quot;; position: absolute; top:0; right:0; width:44%; height:100%;
@@ -283,9 +283,10 @@ try{
     }
     #header-title {
       flex:1; min-width:0;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
+      padding-left:14px;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -3060,17 +3061,24 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
 (function(){
   var outer = document.getElementById(&#x27;scada-outer&#x27;);
   var header = document.getElementById(&#x27;scada-header&#x27;);
+  var headerLeftEl = document.getElementById(&#x27;header-left&#x27;);
+  var headerTitleEl = document.getElementById(&#x27;header-title&#x27;);
   var wrap = document.getElementById(&#x27;wrap&#x27;);
   if(!outer || !wrap) return;
   var REF_W = 1918, REF_H = 877;
   var escalaActual = 1;
   var wrapLeft = 0, wrapTop = 0;
+  var baseLeft = 0, baseTop = 0; // posición centrada &quot;de reposo&quot;, sin arrastre
   var panMinX = 0, panMaxX = 0, panMinY = 0, panMaxY = 0;
 
   function aplicarPosicion(){
     wrap.style.left = wrapLeft + &#x27;px&#x27;;
     wrap.style.top  = wrapTop + &#x27;px&#x27;;
     wrap.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
+    // NOTA: el header se probó moviéndose junto con el diagrama, pero
+    // causaba que su contenido desapareciera al arrastrar mucho y se
+    // viera desordenado — se quitó esa sincronización; el header ahora
+    // se queda siempre fijo y estable.
   }
 
   /* &quot;Cover&quot;: el diagrama llena TODO el ancho y alto disponibles (sin
@@ -3096,8 +3104,10 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
     // Recentrar cada vez que cambia el tamaño (p.ej. al girar el celular).
     // wrapTop se mide desde el borde superior de #scada-outer, así que
     // hay que sumarle headerH para que el lienzo quede DEBAJO del header.
-    wrapLeft = (availW - scaledW) / 2;
-    wrapTop  = headerH + (availH - scaledH) / 2;
+    baseLeft = (availW - scaledW) / 2;
+    baseTop  = headerH + (availH - scaledH) / 2;
+    wrapLeft = baseLeft;
+    wrapTop  = baseTop;
     aplicarPosicion();
   }
   /* ResizeObserver detecta CUALQUIER cambio de tamaño de #scada-outer,
@@ -3155,7 +3165,7 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
       arrastrando = false;
       outer.style.cursor = &#x27;&#x27;;
     }
-    outer.style.touchAction = &#x27;pinch-zoom&#x27;;
+    outer.style.touchAction = &#x27;manipulation&#x27;;
     outer.addEventListener(&#x27;pointerdown&#x27;, onDown);
     outer.addEventListener(&#x27;pointermove&#x27;, onMove);
     outer.addEventListener(&#x27;pointerup&#x27;, onUp);
@@ -3539,7 +3549,7 @@ try{
     #scada-header {
       position: relative; width: 100%; height: 44px; flex-shrink: 0;
       background: #000; display: flex; align-items: center; overflow: hidden;
-      font-family: Arial, sans-serif;
+      font-family: Arial, sans-serif; z-index: 100;
     }
     #scada-header::before {
       content: &quot;&quot;; position: absolute; top:0; right:0; width:44%; height:100%;
@@ -3565,9 +3575,10 @@ try{
     }
     #header-title {
       flex:1; min-width:0;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
+      padding-left:14px;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -6651,17 +6662,24 @@ window.addEventListener(&#x27;message&#x27;, function(e){
 (function(){
   var outer = document.getElementById(&#x27;scada-outer&#x27;);
   var header = document.getElementById(&#x27;scada-header&#x27;);
+  var headerLeftEl = document.getElementById(&#x27;header-left&#x27;);
+  var headerTitleEl = document.getElementById(&#x27;header-title&#x27;);
   var wrap = document.getElementById(&#x27;wrap&#x27;);
   if(!outer || !wrap) return;
   var REF_W = 1918, REF_H = 877;
   var escalaActual = 1;
   var wrapLeft = 0, wrapTop = 0;
+  var baseLeft = 0, baseTop = 0; // posición centrada &quot;de reposo&quot;, sin arrastre
   var panMinX = 0, panMaxX = 0, panMinY = 0, panMaxY = 0;
 
   function aplicarPosicion(){
     wrap.style.left = wrapLeft + &#x27;px&#x27;;
     wrap.style.top  = wrapTop + &#x27;px&#x27;;
     wrap.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
+    // NOTA: el header se probó moviéndose junto con el diagrama, pero
+    // causaba que su contenido desapareciera al arrastrar mucho y se
+    // viera desordenado — se quitó esa sincronización; el header ahora
+    // se queda siempre fijo y estable.
   }
 
   /* &quot;Cover&quot;: el diagrama llena TODO el ancho y alto disponibles (sin
@@ -6687,8 +6705,10 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     // Recentrar cada vez que cambia el tamaño (p.ej. al girar el celular).
     // wrapTop se mide desde el borde superior de #scada-outer, así que
     // hay que sumarle headerH para que el lienzo quede DEBAJO del header.
-    wrapLeft = (availW - scaledW) / 2;
-    wrapTop  = headerH + (availH - scaledH) / 2;
+    baseLeft = (availW - scaledW) / 2;
+    baseTop  = headerH + (availH - scaledH) / 2;
+    wrapLeft = baseLeft;
+    wrapTop  = baseTop;
     aplicarPosicion();
   }
   /* ResizeObserver detecta CUALQUIER cambio de tamaño de #scada-outer,
@@ -6746,7 +6766,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
       arrastrando = false;
       outer.style.cursor = &#x27;&#x27;;
     }
-    outer.style.touchAction = &#x27;pinch-zoom&#x27;;
+    outer.style.touchAction = &#x27;manipulation&#x27;;
     outer.addEventListener(&#x27;pointerdown&#x27;, onDown);
     outer.addEventListener(&#x27;pointermove&#x27;, onMove);
     outer.addEventListener(&#x27;pointerup&#x27;, onUp);
@@ -7122,7 +7142,7 @@ try{
     #scada-header {
       position: relative; width: 100%; height: 44px; flex-shrink: 0;
       background: #000; display: flex; align-items: center; overflow: hidden;
-      font-family: Arial, sans-serif;
+      font-family: Arial, sans-serif; z-index: 100;
     }
     #scada-header::before {
       content: &quot;&quot;; position: absolute; top:0; right:0; width:44%; height:100%;
@@ -7148,9 +7168,10 @@ try{
     }
     #header-title {
       flex:1; min-width:0;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
+      padding-left:14px;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -9803,11 +9824,14 @@ window.addEventListener(&#x27;message&#x27;, function(e){
 &lt;script&gt;
 (function(){
   var header = document.getElementById(&#x27;scada-header&#x27;);
+  var headerLeftEl = document.getElementById(&#x27;header-left&#x27;);
+  var headerTitleEl = document.getElementById(&#x27;header-title&#x27;);
   var wrap = document.getElementById(&#x27;wrap&#x27;);
   if(!wrap) return;
   var REF_W = 1920, REF_H = 1156;
   var escalaActual = 1;
   var wrapLeft = 0, wrapTop = 0;
+  var baseLeft = 0, baseTop = 0; // posición centrada &quot;de reposo&quot;, sin arrastre
   var panMinX = 0, panMaxX = 0, panMinY = 0, panMaxY = 0;
   var headerH = 0;
 
@@ -9815,6 +9839,10 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     wrap.style.left = wrapLeft + &#x27;px&#x27;;
     wrap.style.top  = wrapTop + &#x27;px&#x27;;
     wrap.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
+    // NOTA: el header se probó moviéndose junto con el diagrama, pero
+    // causaba que su contenido desapareciera al arrastrar mucho y se
+    // viera desordenado — se quitó esa sincronización; el header ahora
+    // se queda siempre fijo y estable.
   }
 
   /* &quot;Cover&quot;: el diagrama llena TODO el ancho y alto disponibles (sin
@@ -9835,8 +9863,10 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     panMinY = Math.min(0, availH - scaledH);
     panMaxY = 0;
     // Recentrar cada vez que cambia el tamaño (p.ej. al girar el celular).
-    wrapLeft = (availW - scaledW) / 2;
-    wrapTop  = headerH + (availH - scaledH) / 2;
+    baseLeft = (availW - scaledW) / 2;
+    baseTop  = headerH + (availH - scaledH) / 2;
+    wrapLeft = baseLeft;
+    wrapTop  = baseTop;
     aplicarPosicion();
   }
   if(typeof ResizeObserver !== &#x27;undefined&#x27;){
@@ -9890,7 +9920,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
       arrastrando = false;
       contenedor.style.cursor = &#x27;&#x27;;
     }
-    contenedor.style.touchAction = &#x27;pinch-zoom&#x27;;
+    contenedor.style.touchAction = &#x27;manipulation&#x27;;
     contenedor.addEventListener(&#x27;pointerdown&#x27;, onDown);
     contenedor.addEventListener(&#x27;pointermove&#x27;, onMove);
     contenedor.addEventListener(&#x27;pointerup&#x27;, onUp);
@@ -10273,7 +10303,7 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     #scada-header {
       position: relative; width: 100%; height: 44px; flex-shrink: 0;
       background: #000; display: flex; align-items: center; overflow: hidden;
-      font-family: Arial, sans-serif;
+      font-family: Arial, sans-serif; z-index: 100;
     }
     #scada-header::before {
       content: &quot;&quot;; position: absolute; top:0; right:0; width:44%; height:100%;
@@ -10292,9 +10322,10 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     #nav-home { display:flex; align-items:center; justify-content:center; padding:0 1px; pointer-events: none; }
     #header-title {
       flex:1; min-width:0;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
+      padding-left:14px;
     }
     #header-title::-webkit-scrollbar { display:none; }
     #title-text { font-family: &#x27;Arial Black&#x27;, Arial, sans-serif; font-size: clamp(14px, 3.2vw, 38px); font-weight: 900; color: #ffffff; letter-spacing: 0.04em; white-space: nowrap; flex-shrink:0; }
@@ -10600,6 +10631,9 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
   const workspace = document.getElementById(&#x27;workspace&#x27;);
   const sidebar = document.getElementById(&#x27;sidebar&#x27;);
   const bgImg = document.getElementById(&#x27;bgImg&#x27;);
+  const headerEl = document.getElementById(&#x27;scada-header&#x27;);
+  const headerLeftEl = document.getElementById(&#x27;header-left&#x27;);
+  const headerTitleEl = document.getElementById(&#x27;header-title&#x27;);
 
   let nodes = {};   // id -&gt; {id, x, y, label}
   let nodesVisible = false; /* PRODUCCION: los nodos de calibración nunca se muestran */
@@ -10736,6 +10770,7 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
   const CANVAS_W = 935, CANVAS_H = 427;
   let mimicoScale = 1; // factor de escala actual del canvas (lo usa el widget CHANNEL STATUS)
   let canvasLeft = 0, canvasTop = 0; // posición actual (puede diferir del centro si el usuario arrastró)
+  let baseLeft = 0, baseTop = 0; // posición centrada &quot;de reposo&quot; (sin arrastre), se recalcula en cada resize
   let panMinX = 0, panMaxX = 0, panMinY = 0, panMaxY = 0; // límites válidos de arrastre
 
   function aplicarPosicionCanvas(){
@@ -10743,6 +10778,10 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     canvasWrap.style.top  = canvasTop + &#x27;px&#x27;;
     canvasWrap.style.transform = &#x27;scale(&#x27; + mimicoScale + &#x27;)&#x27;;
     if(typeof window.__hcReposicionar === &#x27;function&#x27;) window.__hcReposicionar();
+    // NOTA: el header se probó moviéndose junto con el diagrama, pero
+    // causaba que su contenido desapareciera al arrastrar mucho y se
+    // viera desordenado — se quitó esa sincronización; el header ahora
+    // se queda siempre fijo y estable.
   }
 
   function ajustarCanvasCover(){
@@ -10761,8 +10800,10 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     panMaxY = 0;
     // Recentrar cada vez que cambia el tamaño (p.ej. al girar el celular),
     // para evitar posiciones inválidas heredadas de una proporción anterior.
-    canvasLeft = (ww - scaledW) / 2;
-    canvasTop  = (wh - scaledH) / 2;
+    baseLeft = (ww - scaledW) / 2;
+    baseTop  = (wh - scaledH) / 2;
+    canvasLeft = baseLeft;
+    canvasTop  = baseTop;
     aplicarPosicionCanvas();
     try{ csAplicarTransform(); }catch(e){ /* cs-widget aún no inicializado en la primera pasada */ }
     try{ alinearChannelStatusConMapas(); }catch(e){ /* elementos aún no listos en la primera pasada */ }
@@ -10848,7 +10889,7 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
       arrastrando = false;
       workspace.style.cursor = &#x27;&#x27;;
     }
-    workspace.style.touchAction = &#x27;pinch-zoom&#x27;;
+    workspace.style.touchAction = &#x27;manipulation&#x27;;
     workspace.addEventListener(&#x27;pointerdown&#x27;, onDown);
     workspace.addEventListener(&#x27;pointermove&#x27;, onMove);
     workspace.addEventListener(&#x27;pointerup&#x27;, onUp);
