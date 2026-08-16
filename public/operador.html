@@ -2101,27 +2101,78 @@ function _cerrado400(id){
   var el = document.getElementById(id);
   return !!(el &amp;&amp; el.classList.contains(&#x27;closed&#x27;));
 }
-function estadosBarras400(){
-  var a0010 = _cerrado400(&#x27;int2&#x27;);  /* A0010 */
-  var a2010 = _cerrado400(&#x27;int1&#x27;);  /* A2010 */
-  var a38k0 = _cerrado400(&#x27;int3&#x27;);  /* A38K0 */
-  var a08k0 = _cerrado400(&#x27;int4&#x27;);  /* A08K0 */
-  var enlace = _cerrado400(&#x27;cu5&#x27;);  /* A38K9 */
 
-  var b1 = a38k0 || (a08k0 &amp;&amp; a0010 &amp;&amp; a2010 &amp;&amp; enlace);
-  var b2 = a08k0 || (a38k0 &amp;&amp; a2010 &amp;&amp; a0010 &amp;&amp; enlace);
-  return {b1:b1, b2:b2};
+/* ============================================================
+   LOGICA PRECISA 400 kV (confirmada con Hugo el 16-ago-2026,
+   basada en logica_400.docx) — reemplaza la version simplificada
+   de arriba. Topologia real, con cuchillas individuales:
+
+   BUS1 = 400kV SOLO SI:
+     Directo: A38K3 y A38K0 y A38K1 cerrados
+     O Vuelta: (A08K3 y A08K0 y A08K2) Y (A0012 y A0010 y A0013)
+               Y (A2013 y A2010 y A2011) cerrados
+   BUS2 = 400kV SOLO SI:
+     Directo: A08K3 y A08K0 y A08K2 cerrados
+     O Vuelta: (A38K3 y A38K0 y A38K1) Y (A2011 y A2010 y A2013)
+               Y (A0013 y A0010 y A0012) cerrados
+   NODO_CENTRO_IZQ = 400kV SOLO SI:
+     (BUS1&gt;0 y A2011 y A2010 y A2013) O (BUS2&gt;0 y A0012 y A0010 y A0013)
+     — puente real entre A0013/A2013 (pasa cerca de BUS2 pero no
+     está conectado a él), por eso puede quedar vivo desde
+     CUALQUIER bus aunque el otro esté muerto.
+
+   Cuchillas de cada interruptor (confirmado con Hugo):
+     A2010: lado BUS1 = A2011 (cu1a) | lado CENTRO = A2013 (cu1b)
+     A0010: lado BUS2 = A0012 (cu2b) | lado CENTRO = A0013 (cu2a)
+     A38K0: lado BUS1 = A38K1 (cu3a) | lado FUENTE = A38K3 (cu3b)
+     A08K0: lado BUS2 = A08K2 (cu4b) | lado FUENTE = A08K3 (cu4a)
+   (el voltaje entra por A38K3/A08K3; la LT externa se asume
+   siempre energizada, no es controlable desde este simulador)
+
+   Un interruptor se fuerza a 0.0 (V,I,P,Q,FP,Hz) SOLO SI ambos
+   lados adyacentes están muertos — el bus/indicador NUNCA cambia
+   de color, solo su lectura numerica pasa a 0.00.
+   ============================================================ */
+function calcularEnergizacion400(){
+  var a2010 = _cerrado400(&#x27;int1&#x27;), a0010 = _cerrado400(&#x27;int2&#x27;);
+  var a38k0 = _cerrado400(&#x27;int3&#x27;), a08k0 = _cerrado400(&#x27;int4&#x27;);
+
+  var a2011 = _cerrado400(&#x27;cu1a&#x27;), a2013 = _cerrado400(&#x27;cu1b&#x27;);
+  var a0013 = _cerrado400(&#x27;cu2a&#x27;), a0012 = _cerrado400(&#x27;cu2b&#x27;);
+  var a38k1 = _cerrado400(&#x27;cu3a&#x27;), a38k3 = _cerrado400(&#x27;cu3b&#x27;);
+  var a08k3 = _cerrado400(&#x27;cu4a&#x27;), a08k2 = _cerrado400(&#x27;cu4b&#x27;);
+
+  var bus1 = (a38k3 &amp;&amp; a38k0 &amp;&amp; a38k1) ||
+             (a08k3 &amp;&amp; a08k0 &amp;&amp; a08k2 &amp;&amp; a0012 &amp;&amp; a0010 &amp;&amp; a0013 &amp;&amp; a2013 &amp;&amp; a2010 &amp;&amp; a2011);
+  var bus2 = (a08k3 &amp;&amp; a08k0 &amp;&amp; a08k2) ||
+             (a38k3 &amp;&amp; a38k0 &amp;&amp; a38k1 &amp;&amp; a2011 &amp;&amp; a2010 &amp;&amp; a2013 &amp;&amp; a0013 &amp;&amp; a0010 &amp;&amp; a0012);
+  var nodoCentroIzq = (bus1 &amp;&amp; a2011 &amp;&amp; a2010 &amp;&amp; a2013) ||
+                      (bus2 &amp;&amp; a0012 &amp;&amp; a0010 &amp;&amp; a0013);
+
+  var FUENTE = true; /* LT externa, siempre energizada en este simulador */
+
+  var vivoA2010 = (a2011 &amp;&amp; bus1) || (a2013 &amp;&amp; nodoCentroIzq);
+  var vivoA0010 = (a0012 &amp;&amp; bus2) || (a0013 &amp;&amp; nodoCentroIzq);
+  var vivoA38K0 = (a38k1 &amp;&amp; bus1) || (a38k3 &amp;&amp; FUENTE);
+  var vivoA08K0 = (a08k2 &amp;&amp; bus2) || (a08k3 &amp;&amp; FUENTE);
+
+  return {
+    bus1: !!bus1, bus2: !!bus2, nodoCentroIzq: !!nodoCentroIzq,
+    a2010: !!vivoA2010, a0010: !!vivoA0010,
+    a38k0: !!vivoA38K0, a08k0: !!vivoA08K0
+  };
 }
 
 var _blackout400Activo = false;
 function actualizarVisualBarras400(){
-  var r = estadosBarras400();
-  var sup = document.getElementById(&#x27;barra-sup&#x27;); /* BUS1 */
-  var inf = document.getElementById(&#x27;barra-inf&#x27;); /* BUS2 */
-  if(sup) sup.classList.toggle(&#x27;bus-muerto&#x27;, !r.b1);
-  if(inf) inf.classList.toggle(&#x27;bus-muerto&#x27;, !r.b2);
-
-  var apagonTotal = (!r.b1 &amp;&amp; !r.b2);
+  var r = calcularEnergizacion400();
+  /* NOTA: ya NO se toca ningún color aquí (ni el bus ni el indicador
+     verde) — ambos se quedan siempre igual, tal como se pidió. Las
+     lecturas numéricas (0.00 cuando está muerto) ya las actualiza el
+     ciclo actualizar()/setVal() de abajo, usando bus1Energizado()/
+     bus2Energizado()/a38Energizado()/a20Energizado(), que ahora usan
+     esta misma lógica de topología precisa. */
+  var apagonTotal = (!r.bus1 &amp;&amp; !r.bus2);
   if(apagonTotal !== _blackout400Activo){
     _blackout400Activo = apagonTotal;
     if(window.parent &amp;&amp; window.parent !== window){
@@ -2129,6 +2180,7 @@ function actualizarVisualBarras400(){
     }
   }
 }
+
 
 function ejecutarManiobra(){
   if(!equipoSeleccionado)return;
@@ -2301,19 +2353,15 @@ makeDraggable(document.getElementById(&#x27;panel-a20&#x27;));
     return el &amp;&amp; el.classList.contains(&#x27;closed&#x27;);
   }
 
-  /* BUS1/BUS2 energizados: delega a estadosBarras400(), que modela
-     la topologia real (dos columnas en serie con fuente en medio de
-     la columna derecha) en vez de un OR simple entre pares fijos. */
-  function bus1Energizado(){ return estadosBarras400().b1; }
-  function bus2Energizado(){ return estadosBarras400().b2; }
-  /* ENR A38K0 energizado: interruptor int3 cerrado y cuchillas cu3a/cu3b cerradas */
-  function a38Energizado(){
-    return estadoEquipo(&#x27;int3&#x27;) &amp;&amp; estadoEquipo(&#x27;cu3a&#x27;) &amp;&amp; estadoEquipo(&#x27;cu3b&#x27;);
-  }
-  /* ENR A2010 energizado: interruptor int1 cerrado y cuchillas cu1a/cu1b cerradas */
-  function a20Energizado(){
-    return estadoEquipo(&#x27;int1&#x27;) &amp;&amp; estadoEquipo(&#x27;cu1a&#x27;) &amp;&amp; estadoEquipo(&#x27;cu1b&#x27;);
-  }
+  /* BUS1/BUS2/A38K0/A2010 energizados: delega a calcularEnergizacion400(),
+     que modela la topología real con cuchillas individuales (ver
+     logica_400.docx, confirmado con Hugo el 16-ago-2026). Un interruptor
+     se considera &quot;vivo&quot; si AL MENOS UNO de sus dos lados adyacentes
+     tiene tensión — se fuerza a 0.00 solo si AMBOS lados están muertos. */
+  function bus1Energizado(){ return calcularEnergizacion400().bus1; }
+  function bus2Energizado(){ return calcularEnergizacion400().bus2; }
+  function a38Energizado(){ return calcularEnergizacion400().a38k0; }
+  function a20Energizado(){ return calcularEnergizacion400().a2010; }
 
   function setVal(id, val, dec, extraClass){
     var el=document.getElementById(id); if(!el) return;
