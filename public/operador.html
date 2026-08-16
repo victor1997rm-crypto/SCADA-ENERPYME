@@ -2166,6 +2166,23 @@ function calcularEnergizacion400(){
 var _blackout400Activo = false;
 function actualizarVisualBarras400(){
   var r = calcularEnergizacion400();
+  /* NUEVO: avisar al MIMICO (GENERAL) el estado real de cada cuchilla e
+     interruptor de 400 kV, para que sus símbolos en el overview
+     muestren abierto/cerrado igual que aquí — no solo el cierre. */
+  if(window.parent &amp;&amp; window.parent !== window){
+    window.parent.postMessage({
+      type: &#x27;ammper-estado-400&#x27;,
+      estados: {
+        A38K0: _cerrado400(&#x27;int3&#x27;), A08K0: _cerrado400(&#x27;int4&#x27;),
+        A2010: _cerrado400(&#x27;int1&#x27;), A0010: _cerrado400(&#x27;int2&#x27;),
+        A38K1: _cerrado400(&#x27;cu3a&#x27;), A38K3: _cerrado400(&#x27;cu3b&#x27;),
+        A08K2: _cerrado400(&#x27;cu4b&#x27;), A08K3: _cerrado400(&#x27;cu4a&#x27;),
+        A2011: _cerrado400(&#x27;cu1a&#x27;), A2013: _cerrado400(&#x27;cu1b&#x27;),
+        A0012: _cerrado400(&#x27;cu2b&#x27;), A0013: _cerrado400(&#x27;cu2a&#x27;),
+        A38K9: _cerrado400(&#x27;cu5&#x27;)
+      }
+    }, &#x27;*&#x27;);
+  }
   /* NOTA: ya NO se toca ningún color aquí (ni el bus ni el indicador
      verde) — ambos se quedan siempre igual, tal como se pidió. Las
      lecturas numéricas (0.00 cuando está muerto) ya las actualiza el
@@ -11126,7 +11143,41 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
 
   window.addEventListener(&#x27;message&#x27;, function(e){
     if(e.data &amp;&amp; e.data.type === &#x27;recalcular-escala&#x27;) setTimeout(ajustarCanvasCover, 20);
+    if(e.data &amp;&amp; e.data.type === &#x27;ammper-estado-400&#x27;) actualizarSimbolos400(e.data.estados);
   });
+
+  /* ============================================================
+     Refleja en el MIMICO el estado REAL de 400 kV (confirmado con
+     Hugo el 16-ago-2026, viendo el diagrama de op_400kV.html):
+       INT3=A38K0, INT4=A08K0, INT5=A2010, INT6=A0010
+       CUC7=A38K1, CUC9=A38K3 (lados de A38K0)
+       CUC10=A08K3, CUC11=A08K2 (lados de A08K0)
+       CUC12=A2011, CUC13=A2013 (lados de A2010)
+       CUC14=A0013, CUC8=A0012 (lados de A0010)
+       CUC5=A38K9 (enlace)
+     ============================================================ */
+  var MAPA_SIMBOLOS_400 = {
+    A38K0:&#x27;INT3&#x27;, A08K0:&#x27;INT4&#x27;, A2010:&#x27;INT5&#x27;, A0010:&#x27;INT6&#x27;,
+    A38K1:&#x27;CUC7&#x27;, A38K3:&#x27;CUC9&#x27;, A08K2:&#x27;CUC11&#x27;, A08K3:&#x27;CUC10&#x27;,
+    A2011:&#x27;CUC12&#x27;, A2013:&#x27;CUC13&#x27;, A0013:&#x27;CUC14&#x27;, A0012:&#x27;CUC8&#x27;,
+    A38K9:&#x27;CUC5&#x27;
+  };
+  function actualizarSimbolos400(estados){
+    if(!estados) return;
+    var huboCambio = false;
+    Object.keys(MAPA_SIMBOLOS_400).forEach(function(tag){
+      var symId = MAPA_SIMBOLOS_400[tag];
+      var sym = symbols[symId];
+      if(!sym) return;
+      var nuevoStatus = estados[tag] ? &#x27;cerrado&#x27; : &#x27;abierto&#x27;;
+      if(sym.status !== nuevoStatus){
+        sym.status = nuevoStatus;
+        huboCambio = true;
+      }
+    });
+    if(huboCambio &amp;&amp; typeof render === &#x27;function&#x27;) render();
+  }
+
   ajustarCanvasCover();
   setTimeout(ajustarCanvasCover, 50);
   setTimeout(ajustarCanvasCover, 300);
@@ -12825,6 +12876,17 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
         event:  'DEVICE CHANGE OF STATE',
         value:  d.estado || (d.despues === 'ABIERTO' ? 'APERTURA' : 'CIERRE'),
         cls:    'red'
+      });
+      return;
+    }
+    if(e.data.type === 'ammper-estado-400'){
+      // Reenvía el estado real de 400 kV al MIMICO (GENERAL), para que
+      // sus símbolos de interruptores/cuchillas se vean abiertos o
+      // cerrados igual que en el diagrama detallado.
+      pages.forEach(function(p){
+        if(p.dataset.page === 'GENERAL' && p.contentWindow){
+          p.contentWindow.postMessage(e.data, '*');
+        }
       });
       return;
     }
