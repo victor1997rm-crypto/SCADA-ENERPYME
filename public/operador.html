@@ -11201,11 +11201,27 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
   // fluyendo hacia 115kV/34.5kV. Se retoma automáticamente en cuanto
   // vuelva la energía en cualquiera de los dos buses.
   var _apagon400Activo = false;
+  var _nominalesFlujo = {}; // id de símbolo -&gt; etiqueta original (ej. &quot;3.41 MW&quot;)
+  function etiquetaFlujoCero(label){
+    // Reemplaza solo el número (con signo/espacio opcional) por &quot;0.00&quot;,
+    // dejando la unidad (MW/MVAr/kVA) intacta.
+    return label.replace(/-?\s*[\d.]+/, &#x27;0.00&#x27;);
+  }
   window.addEventListener(&#x27;message&#x27;, function(e){
     if(e.data &amp;&amp; e.data.type === &#x27;ammper-blackout-400&#x27;){
       var nuevo = !!e.data.activo;
       if(nuevo !== _apagon400Activo){
         _apagon400Activo = nuevo;
+        Object.keys(symbols).forEach(function(id){
+          var sym = symbols[id];
+          if(sym.type !== &#x27;flujo&#x27;) return;
+          if(nuevo){
+            if(_nominalesFlujo[id] === undefined) _nominalesFlujo[id] = sym.label;
+            sym.label = etiquetaFlujoCero(sym.label);
+          } else if(_nominalesFlujo[id] !== undefined){
+            sym.label = _nominalesFlujo[id];
+          }
+        });
         if(typeof render === &#x27;function&#x27;) render();
       }
     }
@@ -11948,7 +11964,9 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
         g.appendChild(circ);
       } else if(sym.type === &#x27;flujo&#x27;){
         // ── Línea de flujo animada (banda punteada en movimiento) + flecha ──
-        const flujoColor = sym.flowColor === &#x27;naranja&#x27; ? &#x27;#ff8800&#x27; : &#x27;#ffcc00&#x27;;
+        // Durante apagón: gris (sin color de fase) y sin flecha direccional,
+        // para no dar a entender que sigue fluyendo potencia hacia algún lado.
+        const flujoColor = _apagon400Activo ? &#x27;#555555&#x27; : (sym.flowColor === &#x27;naranja&#x27; ? &#x27;#ff8800&#x27; : &#x27;#ffcc00&#x27;);
         const flujoLine = document.createElementNS(&#x27;http://www.w3.org/2000/svg&#x27;,&#x27;line&#x27;);
         flujoLine.setAttribute(&#x27;x1&#x27;,-14); flujoLine.setAttribute(&#x27;y1&#x27;,0);
         flujoLine.setAttribute(&#x27;x2&#x27;,9); flujoLine.setAttribute(&#x27;y2&#x27;,0);
@@ -11957,10 +11975,12 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
         flujoLine.style.stroke = flujoColor; flujoLine.style.strokeWidth = &#x27;2px&#x27;; flujoLine.style.fill = &#x27;none&#x27;;
         flujoLine.setAttribute(&#x27;stroke-linecap&#x27;,&#x27;round&#x27;);
         g.appendChild(flujoLine);
-        const flujoHead = document.createElementNS(&#x27;http://www.w3.org/2000/svg&#x27;,&#x27;polygon&#x27;);
-        flujoHead.setAttribute(&#x27;points&#x27;,&#x27;9,-4 16,0 9,4&#x27;);
-        flujoHead.style.fill = flujoColor;
-        g.appendChild(flujoHead);
+        if(!_apagon400Activo){
+          const flujoHead = document.createElementNS(&#x27;http://www.w3.org/2000/svg&#x27;,&#x27;polygon&#x27;);
+          flujoHead.setAttribute(&#x27;points&#x27;,&#x27;9,-4 16,0 9,4&#x27;);
+          flujoHead.style.fill = flujoColor;
+          g.appendChild(flujoHead);
+        }
       } else if(sym.type === &#x27;indicador&#x27;){
         // ── Indicador de texto libre: color verde/blanco, tamaño ajustable, parpadeo opcional ──
         const indColor = sym.indColor === &#x27;verde&#x27; ? &#x27;#2ecc40&#x27; : &#x27;#ffffff&#x27;;
@@ -12000,7 +12020,7 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
         label.setAttribute(&#x27;font-family&#x27;, sym.labelFont || &#x27;Arial, sans-serif&#x27;);
         setMultilineText(label, sym.label || sym.id, sym.labelDx, sym.labelSize || defaultSize);
         if(sym.type === &#x27;flujo&#x27;){
-          label.style.fill = (sym.flowColor === &#x27;naranja&#x27;) ? &#x27;#ff8800&#x27; : &#x27;#ffcc00&#x27;;
+          label.style.fill = _apagon400Activo ? &#x27;#555555&#x27; : ((sym.flowColor === &#x27;naranja&#x27;) ? &#x27;#ff8800&#x27; : &#x27;#ffcc00&#x27;);
         }
 
         labelWrap.appendChild(labelHit);
@@ -12924,12 +12944,13 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
       return;
     }
     if(e.data.type === 'ammper-blackout-400'){
-      // Reenvía el apagón total de 400 kV a TODAS las páginas: activa el
-      // overlay de apagón ya construido en 115kV/34.5kV, y congela los
-      // indicadores de flujo (flechas) en el MIMICO cuando no hay
-      // suministro aguas arriba.
+      // Solo al MIMICO (GENERAL): ahí se usa para poner en cero los
+      // indicadores de bus y congelar el flujo. Ya no se manda a
+      // 115kV/34.5kV (se quitó el aviso de apagón aguas abajo).
       pages.forEach(function(p){
-        if(p.contentWindow) p.contentWindow.postMessage(e.data, '*');
+        if(p.dataset.page === 'GENERAL' && p.contentWindow){
+          p.contentWindow.postMessage(e.data, '*');
+        }
       });
       return;
     }
