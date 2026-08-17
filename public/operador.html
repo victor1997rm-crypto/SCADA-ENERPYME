@@ -3150,13 +3150,33 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
   // Calcula escala y límites válidos para el zoom actual, SIN tocar la
   // posición — se reutiliza al redimensionar (con recentrado) y durante
   // el pellizco de zoom con los dedos (sin recentrar).
+  // &quot;Cover&quot; normal, pero con un límite de recorte: si la pantalla es
+  // MUY distinta de proporción al lienzo (típico en monitores anchos de
+  // escritorio), un &quot;cover&quot; puro recortaría demasiado por los costados.
+  // Si el recorte pasaría de MAX_RECORTE, se mezcla hacia &quot;contener&quot;
+  // (aceptando una franja delgada) en vez de seguir recortando sin
+  // límite. En celular (donde el desajuste es menor) esto no cambia
+  // nada — se sigue viendo exactamente igual, sin franjas.
+  var MAX_RECORTE = 0.15; // 15% máximo de recorte tolerado en cualquier eje
+  function escalaConLimiteDeRecorte(ww, wh, refW, refH){
+    var scaleCover = Math.max(ww/refW, wh/refH);
+    var scaleContain = Math.min(ww/refW, wh/refH);
+    var anchoConCover = refW*scaleCover, altoConCover = refH*scaleCover;
+    var recorteAncho = Math.max(0, (anchoConCover-ww)/anchoConCover);
+    var recorteAlto  = Math.max(0, (altoConCover-wh)/altoConCover);
+    var recorteMax = Math.max(recorteAncho, recorteAlto);
+    if(recorteMax &lt;= MAX_RECORTE) return scaleCover;
+    var factor = MAX_RECORTE / recorteMax;
+    return scaleContain + (scaleCover-scaleContain)*factor;
+  }
+
   function recalcularEscalaYLimites(){
     var headerH = header ? header.offsetHeight : 0;
     ultimoHeaderH = headerH;
     var availW = outer.clientWidth;
     var availH = outer.clientHeight - headerH;
     if(availW &lt;= 0 || availH &lt;= 0) return false;
-    var escala = Math.max(availW / REF_W, availH / REF_H) * zoom;
+    var escala = escalaConLimiteDeRecorte(availW, availH, REF_W, REF_H) * zoom;
     escalaActual = escala;
     var scaledW = REF_W * escala, scaledH = REF_H * escala;
     panMinX = Math.min(0, availW - scaledW);
@@ -6828,13 +6848,26 @@ window.addEventListener(&#x27;message&#x27;, function(e){
   // Calcula escala y límites válidos para el zoom actual, SIN tocar la
   // posición — se reutiliza al redimensionar (con recentrado) y durante
   // el pellizco de zoom con los dedos (sin recentrar).
+  var MAX_RECORTE = 0.15; // 15% máximo de recorte tolerado en cualquier eje
+  function escalaConLimiteDeRecorte(ww, wh, refW, refH){
+    var scaleCover = Math.max(ww/refW, wh/refH);
+    var scaleContain = Math.min(ww/refW, wh/refH);
+    var anchoConCover = refW*scaleCover, altoConCover = refH*scaleCover;
+    var recorteAncho = Math.max(0, (anchoConCover-ww)/anchoConCover);
+    var recorteAlto  = Math.max(0, (altoConCover-wh)/altoConCover);
+    var recorteMax = Math.max(recorteAncho, recorteAlto);
+    if(recorteMax &lt;= MAX_RECORTE) return scaleCover;
+    var factor = MAX_RECORTE / recorteMax;
+    return scaleContain + (scaleCover-scaleContain)*factor;
+  }
+
   function recalcularEscalaYLimites(){
     var headerH = header ? header.offsetHeight : 0;
     ultimoHeaderH = headerH;
     var availW = outer.clientWidth;
     var availH = outer.clientHeight - headerH;
     if(availW &lt;= 0 || availH &lt;= 0) return false;
-    var escala = Math.max(availW / REF_W, availH / REF_H) * zoom;
+    var escala = escalaConLimiteDeRecorte(availW, availH, REF_W, REF_H) * zoom;
     escalaActual = escala;
     var scaledW = REF_W * escala, scaledH = REF_H * escala;
     panMinX = Math.min(0, availW - scaledW);
@@ -10064,12 +10097,25 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     wrap.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
   }
 
+  var MAX_RECORTE = 0.15; // 15% máximo de recorte tolerado en cualquier eje
+  function escalaConLimiteDeRecorte(ww, wh, refW, refH){
+    var scaleCover = Math.max(ww/refW, wh/refH);
+    var scaleContain = Math.min(ww/refW, wh/refH);
+    var anchoConCover = refW*scaleCover, altoConCover = refH*scaleCover;
+    var recorteAncho = Math.max(0, (anchoConCover-ww)/anchoConCover);
+    var recorteAlto  = Math.max(0, (altoConCover-wh)/altoConCover);
+    var recorteMax = Math.max(recorteAncho, recorteAlto);
+    if(recorteMax &lt;= MAX_RECORTE) return scaleCover;
+    var factor = MAX_RECORTE / recorteMax;
+    return scaleContain + (scaleCover-scaleContain)*factor;
+  }
+
   function recalcularEscalaYLimites(){
     headerH = header ? header.offsetHeight : 0;
     var availW = document.body.clientWidth;
     var availH = document.body.clientHeight - headerH;
     if(availW &lt;= 0 || availH &lt;= 0) return false;
-    var escala = Math.max(availW / REF_W, availH / REF_H) * zoom;
+    var escala = escalaConLimiteDeRecorte(availW, availH, REF_W, REF_H) * zoom;
     escalaActual = escala;
     var scaledW = REF_W * escala, scaledH = REF_H * escala;
     panMinX = Math.min(0, availW - scaledW);
@@ -11073,16 +11119,29 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
   // redimensionar la pantalla (con recentrado) como durante el pellizco
   // de zoom con los dedos (sin recentrar, para no perder el punto que
   // el usuario está mirando).
+  var MAX_RECORTE = 0.15; // 15% máximo de recorte tolerado en cualquier eje
+  function escalaConLimiteDeRecorte(ww, wh, refW, refH){
+    const scaleCover = Math.max(ww/refW, wh/refH);
+    const scaleContain = Math.min(ww/refW, wh/refH);
+    const anchoConCover = refW*scaleCover, altoConCover = refH*scaleCover;
+    const recorteAncho = Math.max(0, (anchoConCover-ww)/anchoConCover);
+    const recorteAlto  = Math.max(0, (altoConCover-wh)/altoConCover);
+    const recorteMax = Math.max(recorteAncho, recorteAlto);
+    if(recorteMax &lt;= MAX_RECORTE) return scaleCover;
+    const factor = MAX_RECORTE / recorteMax;
+    return scaleContain + (scaleCover-scaleContain)*factor;
+  }
+
   function recalcularEscalaYLimites(){
     const ww = workspace.clientWidth;
     const wh = workspace.clientHeight;
     if(!ww || !wh) return false;
-    const escala = Math.max(ww / CANVAS_W, wh / CANVAS_H) * zoom;
+    const escala = escalaConLimiteDeRecorte(ww, wh, CANVAS_W, CANVAS_H) * zoom;
     mimicoScale = escala;
     const scaledW = CANVAS_W * escala, scaledH = CANVAS_H * escala;
-    // Límites: el lienzo siempre debe cubrir por completo el workspace (sin
-    // franjas negras), así que solo se permite desplazar dentro de lo que
-    // sobra respecto al tamaño de la pantalla.
+    // Límites: se permite desplazar dentro de lo que sobra respecto al
+    // tamaño de la pantalla (puede ser 0 si el lienzo queda más chico
+    // que la pantalla en algún eje, por el límite de recorte de arriba).
     panMinX = Math.min(0, ww - scaledW);
     panMaxX = 0;
     panMinY = Math.min(0, wh - scaledH);
