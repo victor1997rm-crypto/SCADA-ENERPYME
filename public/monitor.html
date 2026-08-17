@@ -285,10 +285,10 @@ try{
     }
     #header-title {
       flex:1; min-width:0;
-      display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+      display:flex; flex-direction:column; align-items:flex-end; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
-      padding-left:14px;
+      padding-right:16px;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -3143,17 +3143,12 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
     wrap.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
   }
 
-  var MAX_RECORTE = 0.15; // 15% máximo de recorte tolerado en cualquier eje
+  var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    var scaleCover = Math.max(ww/refW, wh/refH);
-    var scaleContain = Math.min(ww/refW, wh/refH);
-    var anchoConCover = refW*scaleCover, altoConCover = refH*scaleCover;
-    var recorteAncho = Math.max(0, (anchoConCover-ww)/anchoConCover);
-    var recorteAlto  = Math.max(0, (altoConCover-wh)/altoConCover);
-    var recorteMax = Math.max(recorteAncho, recorteAlto);
-    if(recorteMax &lt;= MAX_RECORTE) return scaleCover;
-    var factor = MAX_RECORTE / recorteMax;
-    return scaleContain + (scaleCover-scaleContain)*factor;
+    if(ww &lt; BREAKPOINT_ESCRITORIO){
+      return Math.max(ww/refW, wh/refH); // celular: cover completo, sin franjas negras
+    }
+    return Math.min(ww/refW, wh/refH); // escritorio: contener completo, sin recortar nada
   }
 
   function recalcularEscalaYLimites(){
@@ -3226,6 +3221,7 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
     function contarActivos(){ return ordenIds.length; }
 
     function onDown(e){
+      if(header &amp;&amp; header.contains(e.target)) return;
       activos[e.pointerId] = {x: e.clientX, y: e.clientY};
       if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
       try{ outer.setPointerCapture(e.pointerId); }catch(err){}
@@ -3309,6 +3305,9 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
     outer.addEventListener(&#x27;pointermove&#x27;, onMove);
     outer.addEventListener(&#x27;pointerup&#x27;, onUp);
     outer.addEventListener(&#x27;pointercancel&#x27;, onUp);
+    if(header){
+      header.addEventListener(&#x27;pointerdown&#x27;, function(e){ e.stopPropagation(); });
+    }
   })();
 })();
 &lt;/script&gt;
@@ -3649,10 +3648,10 @@ try{
     }
     #header-title {
       flex:1; min-width:0;
-      display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+      display:flex; flex-direction:column; align-items:flex-end; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
-      padding-left:14px;
+      padding-right:16px;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -6754,17 +6753,12 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     wrap.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
   }
 
-  var MAX_RECORTE = 0.15; // 15% máximo de recorte tolerado en cualquier eje
+  var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    var scaleCover = Math.max(ww/refW, wh/refH);
-    var scaleContain = Math.min(ww/refW, wh/refH);
-    var anchoConCover = refW*scaleCover, altoConCover = refH*scaleCover;
-    var recorteAncho = Math.max(0, (anchoConCover-ww)/anchoConCover);
-    var recorteAlto  = Math.max(0, (altoConCover-wh)/altoConCover);
-    var recorteMax = Math.max(recorteAncho, recorteAlto);
-    if(recorteMax &lt;= MAX_RECORTE) return scaleCover;
-    var factor = MAX_RECORTE / recorteMax;
-    return scaleContain + (scaleCover-scaleContain)*factor;
+    if(ww &lt; BREAKPOINT_ESCRITORIO){
+      return Math.max(ww/refW, wh/refH); // celular: cover completo, sin franjas negras
+    }
+    return Math.min(ww/refW, wh/refH); // escritorio: contener completo, sin recortar nada
   }
 
   function recalcularEscalaYLimites(){
@@ -6837,6 +6831,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     function contarActivos(){ return ordenIds.length; }
 
     function onDown(e){
+      if(header &amp;&amp; header.contains(e.target)) return;
       activos[e.pointerId] = {x: e.clientX, y: e.clientY};
       if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
       try{ outer.setPointerCapture(e.pointerId); }catch(err){}
@@ -6920,6 +6915,9 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     outer.addEventListener(&#x27;pointermove&#x27;, onMove);
     outer.addEventListener(&#x27;pointerup&#x27;, onUp);
     outer.addEventListener(&#x27;pointercancel&#x27;, onUp);
+    if(header){
+      header.addEventListener(&#x27;pointerdown&#x27;, function(e){ e.stopPropagation(); });
+    }
   })();
 })();
 &lt;/script&gt;
@@ -7252,10 +7250,10 @@ try{
     }
     #header-title {
       flex:1; min-width:0;
-      display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+      display:flex; flex-direction:column; align-items:flex-end; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
-      padding-left:14px;
+      padding-right:16px;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -9926,17 +9924,12 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     wrap.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
   }
 
-  var MAX_RECORTE = 0.15; // 15% máximo de recorte tolerado en cualquier eje
+  var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    var scaleCover = Math.max(ww/refW, wh/refH);
-    var scaleContain = Math.min(ww/refW, wh/refH);
-    var anchoConCover = refW*scaleCover, altoConCover = refH*scaleCover;
-    var recorteAncho = Math.max(0, (anchoConCover-ww)/anchoConCover);
-    var recorteAlto  = Math.max(0, (altoConCover-wh)/altoConCover);
-    var recorteMax = Math.max(recorteAncho, recorteAlto);
-    if(recorteMax &lt;= MAX_RECORTE) return scaleCover;
-    var factor = MAX_RECORTE / recorteMax;
-    return scaleContain + (scaleCover-scaleContain)*factor;
+    if(ww &lt; BREAKPOINT_ESCRITORIO){
+      return Math.max(ww/refW, wh/refH); // celular: cover completo, sin franjas negras
+    }
+    return Math.min(ww/refW, wh/refH); // escritorio: contener completo, sin recortar nada
   }
 
   function recalcularEscalaYLimites(){
@@ -10003,6 +9996,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     function contarActivos(){ return ordenIds.length; }
 
     function onDown(e){
+      if(header &amp;&amp; header.contains(e.target)) return;
       activos[e.pointerId] = {x: e.clientX, y: e.clientY};
       if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
       try{ contenedor.setPointerCapture(e.pointerId); }catch(err){}
@@ -10081,6 +10075,9 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     contenedor.addEventListener(&#x27;pointermove&#x27;, onMove);
     contenedor.addEventListener(&#x27;pointerup&#x27;, onUp);
     contenedor.addEventListener(&#x27;pointercancel&#x27;, onUp);
+    if(header){
+      header.addEventListener(&#x27;pointerdown&#x27;, function(e){ e.stopPropagation(); });
+    }
   })();
 })();
 &lt;/script&gt;
@@ -10880,17 +10877,12 @@ window.addEventListener(&#x27;message&#x27;, function(e){
   // redimensionar la pantalla (con recentrado) como durante el pellizco
   // de zoom con los dedos (sin recentrar, para no perder el punto que
   // el usuario está mirando).
-  var MAX_RECORTE = 0.15; // 15% máximo de recorte tolerado en cualquier eje
+  var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    const scaleCover = Math.max(ww/refW, wh/refH);
-    const scaleContain = Math.min(ww/refW, wh/refH);
-    const anchoConCover = refW*scaleCover, altoConCover = refH*scaleCover;
-    const recorteAncho = Math.max(0, (anchoConCover-ww)/anchoConCover);
-    const recorteAlto  = Math.max(0, (altoConCover-wh)/altoConCover);
-    const recorteMax = Math.max(recorteAncho, recorteAlto);
-    if(recorteMax &lt;= MAX_RECORTE) return scaleCover;
-    const factor = MAX_RECORTE / recorteMax;
-    return scaleContain + (scaleCover-scaleContain)*factor;
+    if(ww &lt; BREAKPOINT_ESCRITORIO){
+      return Math.max(ww/refW, wh/refH); // celular: cover completo, sin franjas negras
+    }
+    return Math.min(ww/refW, wh/refH); // escritorio: contener completo, sin recortar nada
   }
 
   function recalcularEscalaYLimites(){
