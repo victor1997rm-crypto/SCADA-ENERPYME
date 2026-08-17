@@ -285,10 +285,8 @@ try{
     }
     #header-title {
       flex:1; min-width:0;
-      display:flex; align-items:center; justify-content:flex-end;
-      overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
-      scrollbar-width:none; -ms-overflow-style:none;
-      padding-right:16px;
+      display:flex; align-items:center;
+      overflow:hidden;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -296,7 +294,9 @@ try{
       font-family: &#x27;Arial Black&#x27;, Arial, sans-serif;
       font-size: clamp(14px, 3.2vw, 38px); font-weight: 900;
       color: #ffffff; letter-spacing: 0.04em; white-space: nowrap;
-    flex-shrink:0; }
+      display:block; width:100%; text-align:right; padding-right:16px;
+      overflow:hidden; text-overflow:ellipsis;
+    }
 
     /* ── SCADA PRO — estilos generales ───────────────────────── */
 
@@ -2314,7 +2314,7 @@ makeDraggable(document.getElementById(&#x27;txt-clase3&#x27;));
 (function(){
   var cl=document.getElementById(&#x27;header-clock&#x27;);
   if(!cl) return;
-  var wrapRef = document.getElementById(&#x27;wrap&#x27;);
+  var wrapRef = document.getElementById(&#x27;scada-outer&#x27;);
   var dx=0,dy=0,x=0,y=0,dragging=false;
   cl.addEventListener(&#x27;mousedown&#x27;,function(e){
     e.preventDefault(); e.stopPropagation();
@@ -3747,10 +3747,8 @@ try{
     }
     #header-title {
       flex:1; min-width:0;
-      display:flex; align-items:center; justify-content:flex-end;
-      overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
-      scrollbar-width:none; -ms-overflow-style:none;
-      padding-right:16px;
+      display:flex; align-items:center;
+      overflow:hidden;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -3758,7 +3756,9 @@ try{
       font-family: &#x27;Arial Black&#x27;, Arial, sans-serif;
       font-size: clamp(14px, 3.2vw, 38px); font-weight: 900;
       color: #ffffff; letter-spacing: 0.04em; white-space: nowrap;
-    flex-shrink:0; }
+      display:block; width:100%; text-align:right; padding-right:16px;
+      overflow:hidden; text-overflow:ellipsis;
+    }
 
     /* ── SCADA PRO — estilos generales ───────────────────────── */
 
@@ -4954,7 +4954,7 @@ try{
 (function(){
   var cl=document.getElementById(&#x27;header-clock&#x27;);
   if(!cl) return;
-  var wrapRef = document.getElementById(&#x27;wrap&#x27;);
+  var wrapRef = document.getElementById(&#x27;scada-outer&#x27;);
   var dx=0,dy=0,x=0,y=0,dragging=false;
   cl.addEventListener(&#x27;mousedown&#x27;,function(e){
     e.preventDefault(); e.stopPropagation();
@@ -7429,10 +7429,8 @@ try{
     }
     #header-title {
       flex:1; min-width:0;
-      display:flex; align-items:center; justify-content:flex-end;
-      overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
-      scrollbar-width:none; -ms-overflow-style:none;
-      padding-right:16px;
+      display:flex; align-items:center;
+      overflow:hidden;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -7440,7 +7438,9 @@ try{
       font-family: &#x27;Arial Black&#x27;, Arial, sans-serif;
       font-size: clamp(14px, 3.2vw, 38px); font-weight: 900;
       color: #ffffff; letter-spacing: 0.04em; white-space: nowrap;
-    flex-shrink:0; }
+      display:block; width:100%; text-align:right; padding-right:16px;
+      overflow:hidden; text-overflow:ellipsis;
+    }
 
     /* ── SCADA PRO — estilos generales ───────────────────────── */
 
@@ -8716,7 +8716,7 @@ try{
 (function(){
   var cl = document.getElementById(&#x27;header-clock&#x27;);
   if(!cl) return;
-  var wrapRef = document.getElementById(&#x27;wrap&#x27;);
+  var wrapRef = document.body;
   var dx=0,dy=0,x=0,y=0,dragging=false;
   cl.addEventListener(&#x27;mousedown&#x27;, function(e){
     e.preventDefault(); e.stopPropagation();
@@ -10663,13 +10663,16 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     #nav-home { display:flex; align-items:center; justify-content:center; padding:0 1px; pointer-events: none; }
     #header-title {
       flex:1; min-width:0;
-      display:flex; align-items:center; justify-content:flex-start;
-      overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
-      scrollbar-width:none; -ms-overflow-style:none;
-      padding-left:16px;
+      display:flex; align-items:center;
+      overflow:hidden;
     }
     #header-title::-webkit-scrollbar { display:none; }
-    #title-text { font-family: &#x27;Arial Black&#x27;, Arial, sans-serif; font-size: clamp(14px, 3.2vw, 38px); font-weight: 900; color: #ffffff; letter-spacing: 0.04em; white-space: nowrap; flex-shrink:0; }
+    #title-text {
+      font-family: &#x27;Arial Black&#x27;, Arial, sans-serif; font-size: clamp(14px, 3.2vw, 38px); font-weight: 900;
+      color: #ffffff; letter-spacing: 0.04em; white-space: nowrap;
+      display:block; width:100%; text-align:left; padding-left:40px;
+      overflow:hidden; text-overflow:ellipsis;
+    }
 
     @keyframes border-blink {
       0%,100% { border-color:#aaa; }
@@ -10739,7 +10742,7 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     &lt;span id=&quot;title-text&quot;&gt;RED ELÉCTRICA ENERPYME&lt;/span&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;left:78.154%;top:0.556%;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:grab;text-align:center;width:max-content;&quot;&gt;&lt;/div&gt;
+&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;left:78.154%;top:0.556%;z-index:200;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:grab;text-align:center;width:max-content;&quot;&gt;&lt;/div&gt;
 
 &lt;div id=&quot;workspace&quot;&gt;
   &lt;div id=&quot;canvasWrap&quot;&gt;
@@ -12648,7 +12651,7 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
   (function(){
     var cl = document.getElementById(&#x27;header-clock&#x27;);
     if(!cl) return;
-    var wrapRef = document.getElementById(&#x27;canvasWrap&#x27;);
+    var wrapRef = document.getElementById(&#x27;scada-outer&#x27;);
     var dx=0,dy=0,x=0,y=0,dragging=false;
     cl.addEventListener(&#x27;mousedown&#x27;, function(e){
       e.preventDefault(); e.stopPropagation();
