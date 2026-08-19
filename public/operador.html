@@ -266,6 +266,13 @@ try{
       z-index: 0;
     }
     #header-left { display:flex; align-items:center; gap:8px; padding-left:16px; z-index:2; }
+    #header-clock {
+      font-family:&#x27;Courier New&#x27;,monospace;
+      font-size: clamp(9px, 2.2vw, 15px);
+      font-weight:700; color:#00ee44; letter-spacing:.15em;
+      white-space:nowrap; text-shadow:0 0 8px rgba(0,238,68,.6);
+      padding: 0 10px; flex-shrink:0; z-index:2; position:relative;
+    }
     #header-ammper-text { height: clamp(22px, 6vw, 34px) !important; width: auto; }
     #header-nav {
       display:flex; align-items:center; gap:5px;
@@ -636,6 +643,7 @@ try{
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
+  &lt;div id=&quot;header-clock&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;
     &lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 400 kV&lt;/span&gt;
   &lt;/div&gt;
@@ -913,7 +921,7 @@ ke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot;/&gt;
 &lt;/div&gt;
 &lt;div id=&quot;disp-volt-b1&quot; style=&quot;position:absolute;left:77.529%;top:14.826%;z-index:25;cursor:grab;user-select:none;&quot;&gt;&lt;span id=&quot;disp-volt-b1-val&quot; style=&quot;font-family:&#x27;Courier New&#x27;,monospace;font-size:11px;font-weight:700;color:#00ee44;letter-spacing:.08em;white-space:nowrap;&quot;&gt;407.11&lt;/span&gt;&lt;span style=&quot;font-family:&#x27;Courier New&#x27;,monospace;font-size:11px;font-weight:700;color:#00ee44;margin-left:4px;&quot;&gt;kV&lt;/span&gt;&lt;/div&gt;
 &lt;div id=&quot;disp-volt-b2&quot; style=&quot;position:absolute;left:77.216%;top:77.666%;z-index:25;cursor:grab;user-select:none;&quot;&gt;&lt;span id=&quot;disp-volt-b2-val&quot; style=&quot;font-family:&#x27;Courier New&#x27;,monospace;font-size:11px;font-weight:700;color:#00ee44;letter-spacing:.08em;white-space:nowrap;&quot;&gt;406.82&lt;/span&gt;&lt;span style=&quot;font-family:&#x27;Courier New&#x27;,monospace;font-size:11px;font-weight:700;color:#00ee44;margin-left:4px;&quot;&gt;kV&lt;/span&gt;&lt;/div&gt;
-&lt;div id=&quot;header-clock&quot; style=&quot;position:fixed;top:6px;right:200px;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:default;text-align:center;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
+
 &lt;div id=&quot;med-panel&quot; style=&quot;position:absolute;left:86.913%;top:7.299%;right:auto;cursor:move&quot;&gt;
 
   &lt;!-- ENR A0010 — semáforo físico --&gt;
@@ -3733,6 +3741,13 @@ try{
       z-index: 0;
     }
     #header-left { display:flex; align-items:center; gap:8px; padding-left:16px; z-index:2; }
+    #header-clock {
+      font-family:&#x27;Courier New&#x27;,monospace;
+      font-size: clamp(9px, 2.2vw, 15px);
+      font-weight:700; color:#00ee44; letter-spacing:.15em;
+      white-space:nowrap; text-shadow:0 0 8px rgba(0,238,68,.6);
+      padding: 0 10px; flex-shrink:0; z-index:2; position:relative;
+    }
     #header-ammper-text { height: clamp(22px, 6vw, 34px) !important; width: auto; }
     #header-nav {
       display:flex; align-items:center; gap:5px;
@@ -4126,6 +4141,7 @@ try{
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
+  &lt;div id=&quot;header-clock&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;
     &lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 115 kV&lt;/span&gt;
   &lt;/div&gt;
@@ -4794,7 +4810,7 @@ try{
     &lt;/div&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id=&quot;header-clock&quot; style=&quot;position:fixed;top:6px;right:200px;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:default;text-align:center;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
+
 &lt;/div&gt;&lt;!-- /scada-wrap --&gt;
 &lt;/div&gt;&lt;!-- /scada-outer --&gt;
 
@@ -7400,6 +7416,13 @@ try{
       z-index: 0;
     }
     #header-left { display:flex; align-items:center; gap:8px; padding-left:16px; z-index:2; }
+    #header-clock {
+      font-family:&#x27;Courier New&#x27;,monospace;
+      font-size: clamp(9px, 2.2vw, 15px);
+      font-weight:700; color:#00ee44; letter-spacing:.15em;
+      white-space:nowrap; text-shadow:0 0 8px rgba(0,238,68,.6);
+      padding: 0 10px; flex-shrink:0; z-index:2; position:relative;
+    }
     #header-ammper-text { height: clamp(22px, 6vw, 34px) !important; width: auto; }
     #header-nav {
       display:flex; align-items:center; gap:5px;
@@ -7911,6 +7934,7 @@ try{
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
+  &lt;div id=&quot;header-clock&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;&lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 34.5 kV&lt;/span&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;scada-wrap&quot; id=&quot;wrap&quot;&gt;
@@ -7920,7 +7944,7 @@ try{
     &lt;/div&gt;
   &lt;/div&gt;
 
-  &lt;div id=&quot;header-clock&quot; style=&quot;position:fixed;top:6px;right:200px;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:default;text-align:center;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
+
   &lt;div id=&quot;mimico-btn&quot; onclick=&quot;toggleCalib345()&quot; style=&quot;left:9.593%;top:3.114%;&quot;&gt;MIMICO&lt;/div&gt;
   &lt;div id=&quot;alarmas-btn&quot; style=&quot;left:9.541%;top:6.574%;&quot;&gt;ALARMAS &lt;svg width=&quot;16&quot; height=&quot;15&quot; viewBox=&quot;0 0 24 22&quot; style=&quot;vertical-align:middle;margin-left:2px;&quot;&gt;
         &lt;path d=&quot;M12 1 L23 20 L1 20 Z&quot; fill=&quot;#ffdd00&quot; stroke=&quot;#000000&quot; stroke-width=&quot;1.5&quot; stroke-linejoin=&quot;round&quot;/&gt;
@@ -10644,6 +10668,13 @@ try{
       z-index: 0;
     }
     #header-left { display:flex; align-items:center; gap:8px; padding-left:16px; z-index:2; }
+    #header-clock {
+      font-family:&#x27;Courier New&#x27;,monospace;
+      font-size: clamp(9px, 2.2vw, 15px);
+      font-weight:700; color:#00ee44; letter-spacing:.15em;
+      white-space:nowrap; text-shadow:0 0 8px rgba(0,238,68,.6);
+      padding: 0 10px; flex-shrink:0; z-index:2; position:relative;
+    }
     #header-ammper-text { height: clamp(22px, 6vw, 34px) !important; width: auto; }
     #header-nav {
       display:flex; align-items:center; gap:5px;
@@ -10733,11 +10764,11 @@ try{
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
+  &lt;div id=&quot;header-clock&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;
     &lt;span id=&quot;title-text&quot;&gt;RED ELÉCTRICA ENERPYME&lt;/span&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id=&quot;header-clock&quot; style=&quot;position:fixed;top:6px;right:200px;z-index:200;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:default;text-align:center;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
 
 &lt;div id=&quot;workspace&quot;&gt;
   &lt;div id=&quot;canvasWrap&quot;&gt;
