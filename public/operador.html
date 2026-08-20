@@ -637,6 +637,7 @@ try{
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
+  &lt;div id=&quot;header-clock&quot; style=&quot;position:fixed;top:calc(clamp(36px, 8vw, 50px) + 10px);right:clamp(8px, 5vw, 220px);z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:default;text-align:center;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;
     &lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 400 kV&lt;/span&gt;
   &lt;/div&gt;
@@ -1150,7 +1151,6 @@ ke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot;/&gt;
     &lt;text x=&quot;4&quot; y=&quot;160&quot; font-family=&quot;Arial&quot; font-size=&quot;20&quot; fill=&quot;#cccccc&quot;&gt;X&lt;/text&gt;
   &lt;/svg&gt;
 &lt;/div&gt;
-&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;left:82%;top:1.4%;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:12px;font-weight:700;color:#00ee44;letter-spacing:.15em;white-space:nowrap;text-shadow:0 0 8px rgba(0,238,68,.6);cursor:default;text-align:center;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
 &lt;/div&gt;
 
 &lt;/div&gt;&lt;!-- /scada-outer --&gt;
@@ -7918,6 +7918,7 @@ try{
   &lt;div id=&quot;header-title&quot;&gt;&lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 34.5 kV&lt;/span&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;scada-wrap&quot; id=&quot;wrap&quot;&gt;
+  &lt;img id=&quot;bgImg345&quot; src=&quot;&quot; alt=&quot;&quot; style=&quot;position:absolute;top:0;left:0;width:100%;height:100%;display:none;user-select:none;-webkit-user-drag:none;pointer-events:none;z-index:0;opacity:0.7;&quot;&gt;
   &lt;div class=&quot;blackout-overlay-400&quot; id=&quot;blackout-overlay-400&quot;&gt;
     &lt;div class=&quot;bo-box&quot;&gt;⚠ SIN SUMINISTRO
       &lt;span class=&quot;bo-sub&quot;&gt;Falla aguas arriba en S.E. ENERPYME 400 kV&lt;/span&gt;
@@ -8714,6 +8715,8 @@ var _LS345    = &#x27;345kv_pos_v1&#x27;;
 function toggleCalib345(){
   _calib345 = !_calib345;
   document.body.classList.toggle(&#x27;calib345&#x27;, _calib345);
+  var bg = document.getElementById(&#x27;bgImg345&#x27;);
+  if(bg) bg.style.display = _calib345 ? &#x27;block&#x27; : &#x27;none&#x27;;
   if(_calib345){
     /* Re-registrar TODOS los static-ref en cada activación */
     document.querySelectorAll(&#x27;.static-ref&#x27;).forEach(function(el){
