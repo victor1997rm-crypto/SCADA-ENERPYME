@@ -266,13 +266,6 @@ try{
       z-index: 0;
     }
     #header-left { display:flex; align-items:center; gap:8px; padding-left:16px; z-index:2; }
-    #header-clock {
-      font-family:&#x27;Courier New&#x27;,monospace;
-      font-size: clamp(9px, 2.2vw, 15px);
-      font-weight:700; color:#00ee44; letter-spacing:.15em;
-      white-space:nowrap; text-shadow:0 0 8px rgba(0,238,68,.6);
-      padding: 0 10px; flex-shrink:0; z-index:2; position:relative;
-    }
     #header-ammper-text { height: clamp(22px, 6vw, 34px) !important; width: auto; }
     #header-nav {
       display:flex; align-items:center; gap:5px;
@@ -303,6 +296,7 @@ try{
       font-family: &#x27;Arial Black&#x27;, Arial, sans-serif;
       font-size: clamp(14px, 3.2vw, 38px); font-weight: 900;
       color: #ffffff; letter-spacing: 0.04em; white-space: nowrap;
+      display:block; width:100%; text-align:right; padding-right:16px;
       overflow:hidden; text-overflow:ellipsis;
     }
 
@@ -643,7 +637,6 @@ try{
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
-  &lt;div id=&quot;header-clock&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;
     &lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 400 kV&lt;/span&gt;
   &lt;/div&gt;
@@ -1157,6 +1150,7 @@ ke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot;/&gt;
     &lt;text x=&quot;4&quot; y=&quot;160&quot; font-family=&quot;Arial&quot; font-size=&quot;20&quot; fill=&quot;#cccccc&quot;&gt;X&lt;/text&gt;
   &lt;/svg&gt;
 &lt;/div&gt;
+&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;left:82%;top:1.4%;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:12px;font-weight:700;color:#00ee44;letter-spacing:.15em;white-space:nowrap;text-shadow:0 0 8px rgba(0,238,68,.6);cursor:default;text-align:center;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
 &lt;/div&gt;
 
 &lt;/div&gt;&lt;!-- /scada-outer --&gt;
@@ -3177,7 +3171,7 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
     // wrapTop se mide desde el borde superior de #scada-outer, así que
     // hay que sumarle headerH para que el lienzo quede DEBAJO del header.
     baseLeft = (availW - scaledW) / 2;
-    baseTop  = headerH + (availH - scaledH) / 2;
+    baseTop  = headerH; // anclado arriba (no centrado) — el recorte, si lo hay, queda abajo
     wrapLeft = baseLeft;
     wrapTop  = baseTop;
     aplicarPosicion();
@@ -3741,13 +3735,6 @@ try{
       z-index: 0;
     }
     #header-left { display:flex; align-items:center; gap:8px; padding-left:16px; z-index:2; }
-    #header-clock {
-      font-family:&#x27;Courier New&#x27;,monospace;
-      font-size: clamp(9px, 2.2vw, 15px);
-      font-weight:700; color:#00ee44; letter-spacing:.15em;
-      white-space:nowrap; text-shadow:0 0 8px rgba(0,238,68,.6);
-      padding: 0 10px; flex-shrink:0; z-index:2; position:relative;
-    }
     #header-ammper-text { height: clamp(22px, 6vw, 34px) !important; width: auto; }
     #header-nav {
       display:flex; align-items:center; gap:5px;
@@ -4141,7 +4128,7 @@ try{
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
-  &lt;div id=&quot;header-clock&quot;&gt;&lt;/div&gt;
+  &lt;div id=&quot;header-clock&quot; style=&quot;position:fixed;top:calc(clamp(36px, 8vw, 50px) + 10px);right:clamp(8px, 5vw, 220px);z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:default;text-align:center;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;
     &lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 115 kV&lt;/span&gt;
   &lt;/div&gt;
@@ -6879,7 +6866,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     // wrapTop se mide desde el borde superior de #scada-outer, así que
     // hay que sumarle headerH para que el lienzo quede DEBAJO del header.
     baseLeft = (availW - scaledW) / 2;
-    baseTop  = headerH + (availH - scaledH) / 2;
+    baseTop  = headerH; // anclado arriba (no centrado) — el recorte, si lo hay, queda abajo
     wrapLeft = baseLeft;
     wrapTop  = baseTop;
     aplicarPosicion();
@@ -7416,13 +7403,6 @@ try{
       z-index: 0;
     }
     #header-left { display:flex; align-items:center; gap:8px; padding-left:16px; z-index:2; }
-    #header-clock {
-      font-family:&#x27;Courier New&#x27;,monospace;
-      font-size: clamp(9px, 2.2vw, 15px);
-      font-weight:700; color:#00ee44; letter-spacing:.15em;
-      white-space:nowrap; text-shadow:0 0 8px rgba(0,238,68,.6);
-      padding: 0 10px; flex-shrink:0; z-index:2; position:relative;
-    }
     #header-ammper-text { height: clamp(22px, 6vw, 34px) !important; width: auto; }
     #header-nav {
       display:flex; align-items:center; gap:5px;
@@ -7934,7 +7914,7 @@ try{
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
-  &lt;div id=&quot;header-clock&quot;&gt;&lt;/div&gt;
+  &lt;div id=&quot;header-clock&quot; style=&quot;position:fixed;top:calc(clamp(36px, 8vw, 50px) + 10px);right:clamp(8px, 5vw, 220px);z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:default;text-align:center;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;&lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 34.5 kV&lt;/span&gt;&lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;scada-wrap&quot; id=&quot;wrap&quot;&gt;
@@ -10128,7 +10108,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     var scaledW = REF_W * escalaActual, scaledH = REF_H * escalaActual;
     // Recentrar cada vez que cambia el tamaño (p.ej. al girar el celular).
     baseLeft = (availW - scaledW) / 2;
-    baseTop  = headerH + (availH - scaledH) / 2;
+    baseTop  = headerH; // anclado arriba (no centrado) — el recorte, si lo hay, queda abajo
     wrapLeft = baseLeft;
     wrapTop  = baseTop;
     aplicarPosicion();
@@ -10668,13 +10648,6 @@ try{
       z-index: 0;
     }
     #header-left { display:flex; align-items:center; gap:8px; padding-left:16px; z-index:2; }
-    #header-clock {
-      font-family:&#x27;Courier New&#x27;,monospace;
-      font-size: clamp(9px, 2.2vw, 15px);
-      font-weight:700; color:#00ee44; letter-spacing:.15em;
-      white-space:nowrap; text-shadow:0 0 8px rgba(0,238,68,.6);
-      padding: 0 10px; flex-shrink:0; z-index:2; position:relative;
-    }
     #header-ammper-text { height: clamp(22px, 6vw, 34px) !important; width: auto; }
     #header-nav {
       display:flex; align-items:center; gap:5px;
@@ -10696,7 +10669,7 @@ try{
     #title-text {
       font-family: &#x27;Arial Black&#x27;, Arial, sans-serif; font-size: clamp(14px, 3.2vw, 38px); font-weight: 900;
       color: #ffffff; letter-spacing: 0.04em; white-space: nowrap;
-      display:block; width:100%; text-align:left; padding-left:40px;
+      display:block; width:100%; text-align:right; padding-right:16px;
       overflow:hidden; text-overflow:ellipsis;
     }
 
@@ -10764,7 +10737,7 @@ try{
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
-  &lt;div id=&quot;header-clock&quot;&gt;&lt;/div&gt;
+  &lt;div id=&quot;header-clock&quot; style=&quot;position:fixed;top:calc(clamp(36px, 8vw, 50px) + 10px);right:clamp(8px, 5vw, 220px);z-index:200;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:default;text-align:center;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;
     &lt;span id=&quot;title-text&quot;&gt;RED ELÉCTRICA ENERPYME&lt;/span&gt;
   &lt;/div&gt;
@@ -11192,7 +11165,7 @@ try{
     // Recentrar cada vez que cambia el tamaño (p.ej. al girar el celular),
     // para evitar posiciones inválidas heredadas de una proporción anterior.
     baseLeft = (ww - scaledW) / 2;
-    baseTop  = (wh - scaledH) / 2;
+    baseTop  = 0; // anclado arriba (no centrado) — el recorte, si lo hay, queda abajo
     canvasLeft = baseLeft;
     canvasTop  = baseTop;
     aplicarPosicionCanvas();
