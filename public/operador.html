@@ -284,7 +284,7 @@ try{
       padding:0 1px; pointer-events: none;
     }
     #header-title {
-      flex:1; min-width:0;
+      position:relative; z-index:2; flex:1; min-width:0;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
@@ -295,6 +295,7 @@ try{
       font-family: &#x27;Arial Black&#x27;, Arial, sans-serif;
       font-size: clamp(14px, 3.2vw, 38px); font-weight: 900;
       color: #ffffff; letter-spacing: 0.04em; white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 8px rgba(0,0,0,.5);
     flex-shrink:0; }
 
     /* ── SCADA PRO — estilos generales ───────────────────────── */
@@ -3198,7 +3199,7 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
     // wrapTop se mide desde el borde superior de #scada-outer, así que
     // hay que sumarle headerH para que el lienzo quede DEBAJO del header.
     baseLeft = (availW - scaledW) / 2;
-    baseTop  = headerH + (availH - scaledH) / 2;
+    baseTop  = headerH; // pegado al header, sin espacio de sobra arriba/abajo
     wrapLeft = baseLeft;
     wrapTop  = baseTop;
     aplicarPosicion();
@@ -3213,6 +3214,34 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
   }
   window.addEventListener(&#x27;message&#x27;, function(e){
     if(e.data &amp;&amp; e.data.type === &#x27;recalcular-escala&#x27;) ajustarEscala();
+
+/* ── Ajuste automático del título del header: garantiza que el texto
+   SIEMPRE quepa completo dentro del espacio disponible, sin recortarse
+   ni depender de scroll horizontal. Se reduce con transform:scale()
+   solo lo necesario. Igual en las 4 secciones. ── */
+(function(){
+  function ajustarTituloHeader(){
+    var span = document.getElementById(&#x27;title-text&#x27;);
+    var cont = document.getElementById(&#x27;header-title&#x27;);
+    if(!span || !cont) return;
+    span.style.transform = &#x27;none&#x27;;
+    var contW = cont.clientWidth;
+    var textW = span.scrollWidth;
+    if(contW &gt; 0 &amp;&amp; textW &gt; contW){
+      var factor = Math.max(0.5, contW / textW);
+      span.style.transform = &#x27;scale(&#x27; + factor + &#x27;)&#x27;;
+    }
+  }
+  window.addEventListener(&#x27;load&#x27;, ajustarTituloHeader);
+  window.addEventListener(&#x27;resize&#x27;, ajustarTituloHeader);
+  window.addEventListener(&#x27;message&#x27;, function(e){
+    if(e.data &amp;&amp; e.data.type === &#x27;recalcular-escala&#x27;) setTimeout(ajustarTituloHeader, 20);
+  });
+  setTimeout(ajustarTituloHeader, 50);
+  setTimeout(ajustarTituloHeader, 300);
+  ajustarTituloHeader();
+})();
+
   });
   window.addEventListener(&#x27;resize&#x27;, ajustarEscala);
   window.addEventListener(&#x27;load&#x27;, ajustarEscala);
@@ -3738,7 +3767,7 @@ try{
       padding:0 1px; pointer-events: none;
     }
     #header-title {
-      flex:1; min-width:0;
+      position:relative; z-index:2; flex:1; min-width:0;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
@@ -3749,6 +3778,7 @@ try{
       font-family: &#x27;Arial Black&#x27;, Arial, sans-serif;
       font-size: clamp(14px, 3.2vw, 38px); font-weight: 900;
       color: #ffffff; letter-spacing: 0.04em; white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 8px rgba(0,0,0,.5);
     flex-shrink:0; }
 
     /* ── SCADA PRO — estilos generales ───────────────────────── */
@@ -6888,7 +6918,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     // wrapTop se mide desde el borde superior de #scada-outer, así que
     // hay que sumarle headerH para que el lienzo quede DEBAJO del header.
     baseLeft = (availW - scaledW) / 2;
-    baseTop  = headerH + (availH - scaledH) / 2;
+    baseTop  = headerH; // pegado al header, sin espacio de sobra arriba/abajo
     wrapLeft = baseLeft;
     wrapTop  = baseTop;
     aplicarPosicion();
@@ -6903,6 +6933,34 @@ window.addEventListener(&#x27;message&#x27;, function(e){
   }
   window.addEventListener(&#x27;message&#x27;, function(e){
     if(e.data &amp;&amp; e.data.type === &#x27;recalcular-escala&#x27;) ajustarEscala();
+
+/* ── Ajuste automático del título del header: garantiza que el texto
+   SIEMPRE quepa completo dentro del espacio disponible, sin recortarse
+   ni depender de scroll horizontal. Se reduce con transform:scale()
+   solo lo necesario. Igual en las 4 secciones. ── */
+(function(){
+  function ajustarTituloHeader(){
+    var span = document.getElementById(&#x27;title-text&#x27;);
+    var cont = document.getElementById(&#x27;header-title&#x27;);
+    if(!span || !cont) return;
+    span.style.transform = &#x27;none&#x27;;
+    var contW = cont.clientWidth;
+    var textW = span.scrollWidth;
+    if(contW &gt; 0 &amp;&amp; textW &gt; contW){
+      var factor = Math.max(0.5, contW / textW);
+      span.style.transform = &#x27;scale(&#x27; + factor + &#x27;)&#x27;;
+    }
+  }
+  window.addEventListener(&#x27;load&#x27;, ajustarTituloHeader);
+  window.addEventListener(&#x27;resize&#x27;, ajustarTituloHeader);
+  window.addEventListener(&#x27;message&#x27;, function(e){
+    if(e.data &amp;&amp; e.data.type === &#x27;recalcular-escala&#x27;) setTimeout(ajustarTituloHeader, 20);
+  });
+  setTimeout(ajustarTituloHeader, 50);
+  setTimeout(ajustarTituloHeader, 300);
+  ajustarTituloHeader();
+})();
+
   });
   window.addEventListener(&#x27;resize&#x27;, ajustarEscala);
   window.addEventListener(&#x27;load&#x27;, ajustarEscala);
@@ -7399,7 +7457,7 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
       padding:0 1px; pointer-events: none;
     }
     #header-title {
-      flex:1; min-width:0;
+      position:relative; z-index:2; flex:1; min-width:0;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
@@ -7410,6 +7468,7 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
       font-family: &#x27;Arial Black&#x27;, Arial, sans-serif;
       font-size: clamp(14px, 3.2vw, 38px); font-weight: 900;
       color: #ffffff; letter-spacing: 0.04em; white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 8px rgba(0,0,0,.5);
     flex-shrink:0; }
 
     /* ── SCADA PRO — estilos generales ───────────────────────── */
@@ -7850,31 +7909,173 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
 &lt;/style&gt;
 &lt;script&gt;
 /* ── ESCALADO DE PÁGINA COMPLETA (34.5 kV) ──
-   Todo el contenido (diagrama + paneles fijos como MIMICO, ALARMAS,
-   CHANNEL STATUS, ENR) vive dentro de un lienzo de tamaño fijo
-   (1950x1180 — el tamaño real en el que se calibró en el monitor).
-   Se escala para llenar el ANCHO de la pantalla (igual que 400kV/115kV,
-   que siempre ocupan el ancho completo), permitiendo scroll vertical
-   si el contenido es más alto que la ventana, en vez de encogerlo
-   todo para que quepa completo — así el &quot;zoom&quot; se siente igual que
-   en las demás secciones. */
+   Mismo esquema que 400kV/115kV: en escritorio &quot;contiene&quot; el lienzo
+   completo (sin recortar nada); en celular usa &quot;cover&quot; (llena todo el
+   ancho y alto disponibles, sin franjas negras), permitiendo arrastrar
+   con el dedo/mouse las partes que queden fuera de la pantalla. */
 window.SCALE_345 = 1;
 (function(){
-  var REF_W = 1950;
-  var REF_H = 1180;
+  var REF_W = 1950, REF_H = 1180;
+  var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
+
+  var overlay, stage;
+  var escalaActual = 1;
+  var stageLeft = 0, stageTop = 0;
+  var baseLeft = 0, baseTop = 0;
+  var panMinX = 0, panMaxX = 0, panMinY = 0, panMaxY = 0;
+
+  function escalaConLimiteDeRecorte(ww, wh){
+    if(ww &lt; BREAKPOINT_ESCRITORIO){
+      return Math.max(ww/REF_W, wh/REF_H); // celular: cover completo, sin franjas negras
+    }
+    return Math.min(ww/REF_W, wh/REF_H); // escritorio: contener completo, sin recortar nada
+  }
+
+  function aplicarPosicion(){
+    stage.style.left = stageLeft + &#x27;px&#x27;;
+    stage.style.top  = stageTop + &#x27;px&#x27;;
+    stage.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
+  }
+
   function ajustarEscalaPagina345(){
-    var stage = document.getElementById(&#x27;page-stage-345&#x27;);
-    if(!stage) return;
-    var scale = window.innerWidth / REF_W;
-    if(!scale || scale &lt;= 0) return;
-    window.SCALE_345 = scale;
-    stage.style.transform = &#x27;scale(&#x27; + scale + &#x27;)&#x27;;
-    stage.style.height = (REF_H * scale) + &#x27;px&#x27;;
+    if(!overlay) overlay = document.getElementById(&#x27;unscaled-overlay&#x27;);
+    if(!stage) stage = document.getElementById(&#x27;page-stage-345&#x27;);
+    if(!overlay || !stage) return;
+    var availW = overlay.clientWidth;
+    var availH = overlay.clientHeight;
+    if(availW &lt;= 0 || availH &lt;= 0) return;
+    escalaActual = escalaConLimiteDeRecorte(availW, availH);
+    window.SCALE_345 = escalaActual;
+    var scaledW = REF_W * escalaActual, scaledH = REF_H * escalaActual;
+    panMinX = Math.min(0, availW - scaledW);
+    panMaxX = 0;
+    panMinY = Math.min(0, availH - scaledH);
+    panMaxY = 0;
+    baseLeft = (availW - scaledW) / 2;
+    baseTop  = 0; // pegado al header, sin espacio de sobra arriba/abajo (igual que 400kV/115kV)
+    stageLeft = baseLeft;
+    stageTop  = baseTop;
+    aplicarPosicion();
+  }
+
+  function inicializar(){
+    overlay = document.getElementById(&#x27;unscaled-overlay&#x27;);
+    stage = document.getElementById(&#x27;page-stage-345&#x27;);
+    if(!overlay || !stage) return;
+
+    /* Escala INDEPENDIENTE para los widgets del header (CHANNEL STATUS,
+       MIMICO, ALARMAS, reloj): usa el MISMO cálculo y la MISMA referencia
+       (1918x877) que 400kV/115kV, para que se vean EXACTAMENTE igual de
+       tamaño en cualquier pantalla, sin depender de la escala propia del
+       diagrama de 34.5 (que usa un lienzo distinto, 1950x1180). */
+    (function(){
+      var HW_REF_W = 1918, HW_REF_H = 877;
+      var HW_BREAKPOINT = 900;
+      var hw = document.getElementById(&#x27;header-widgets-345&#x27;);
+      if(!hw) return;
+      function ajustar(){
+        var availW = overlay.clientWidth;
+        var availH = overlay.clientHeight;
+        if(availW &lt;= 0 || availH &lt;= 0) return;
+        var escala;
+        if(availW &lt; HW_BREAKPOINT){
+          escala = Math.max(availW/HW_REF_W, availH/HW_REF_H);
+        } else {
+          escala = Math.min(availW/HW_REF_W, availH/HW_REF_H);
+        }
+        hw.style.transform = &#x27;scale(&#x27; + escala + &#x27;)&#x27;;
+      }
+      if(typeof ResizeObserver !== &#x27;undefined&#x27;){
+        new ResizeObserver(ajustar).observe(overlay);
+      }
+      window.addEventListener(&#x27;resize&#x27;, ajustar);
+      ajustar();
+      setTimeout(ajustar, 50);
+      setTimeout(ajustar, 300);
+    })();
+
+    if(typeof ResizeObserver !== &#x27;undefined&#x27;){
+      new ResizeObserver(ajustarEscalaPagina345).observe(overlay);
+    }
+    window.addEventListener(&#x27;message&#x27;, function(e){
+      if(e.data &amp;&amp; e.data.type === &#x27;recalcular-escala&#x27;) ajustarEscalaPagina345();
+    });
+    window.addEventListener(&#x27;resize&#x27;, ajustarEscalaPagina345);
+    ajustarEscalaPagina345();
+    setTimeout(ajustarEscalaPagina345, 50);
+    setTimeout(ajustarEscalaPagina345, 300);
+
+    /* ── Ajuste automático del título del header: garantiza que el
+       texto SIEMPRE quepa completo, igual que en 400kV/115kV/GENERAL. */
+    (function(){
+      function ajustarTituloHeader(){
+        var span = document.getElementById(&#x27;title-text&#x27;);
+        var cont = document.getElementById(&#x27;header-title&#x27;);
+        if(!span || !cont) return;
+        span.style.transform = &#x27;none&#x27;;
+        var contW = cont.clientWidth;
+        var textW = span.scrollWidth;
+        if(contW &gt; 0 &amp;&amp; textW &gt; contW){
+          var factor = Math.max(0.5, contW / textW);
+          span.style.transform = &#x27;scale(&#x27; + factor + &#x27;)&#x27;;
+        }
+      }
+      window.addEventListener(&#x27;resize&#x27;, ajustarTituloHeader);
+      setTimeout(ajustarTituloHeader, 50);
+      setTimeout(ajustarTituloHeader, 300);
+      ajustarTituloHeader();
+    })();
+
+    /* Arrastrar con el dedo/mouse cuando el lienzo no cabe completo
+       (modo &quot;cover&quot; en celular). Solo se activa tras un pequeño umbral
+       de movimiento, para no interferir con clics normales. */
+    var UMBRAL_PX = 6;
+    var posible = false, arrastrando = false;
+    var startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+    function onDown(x, y, target){
+      if(target &amp;&amp; target.closest &amp;&amp; target.closest(&#x27;.cq-handle,#cuadro-punteado&#x27;)) return;
+      posible = true; arrastrando = false;
+      startX = x; startY = y; startLeft = stageLeft; startTop = stageTop;
+    }
+    function onMove(x, y, ev){
+      if(!posible) return;
+      var dx = x - startX, dy = y - startY;
+      if(!arrastrando){
+        if(Math.abs(dx) &lt; UMBRAL_PX &amp;&amp; Math.abs(dy) &lt; UMBRAL_PX) return;
+        arrastrando = true;
+      }
+      if(ev &amp;&amp; ev.cancelable) ev.preventDefault();
+      var nl = startLeft + dx, nt = startTop + dy;
+      nl = Math.min(panMaxX, Math.max(panMinX, nl));
+      nt = Math.min(panMaxY, Math.max(panMinY, nt));
+      stageLeft = nl; stageTop = nt;
+      aplicarPosicion();
+    }
+    function onUp(){ posible = false; arrastrando = false; }
+
+    overlay.addEventListener(&#x27;mousedown&#x27;, function(e){ onDown(e.clientX, e.clientY, e.target); });
+    window.addEventListener(&#x27;mousemove&#x27;, function(e){ onMove(e.clientX, e.clientY, e); });
+    window.addEventListener(&#x27;mouseup&#x27;, onUp);
+
+    overlay.addEventListener(&#x27;touchstart&#x27;, function(e){
+      if(e.touches.length !== 1) return;
+      onDown(e.touches[0].clientX, e.touches[0].clientY, e.target);
+    }, {passive:true});
+    overlay.addEventListener(&#x27;touchmove&#x27;, function(e){
+      if(e.touches.length !== 1) return;
+      onMove(e.touches[0].clientX, e.touches[0].clientY, e);
+    }, {passive:false});
+    overlay.addEventListener(&#x27;touchend&#x27;, onUp);
+    overlay.addEventListener(&#x27;touchcancel&#x27;, onUp);
+  }
+
+  if(document.readyState === &#x27;loading&#x27;){
+    document.addEventListener(&#x27;DOMContentLoaded&#x27;, inicializar);
+  } else {
+    inicializar();
   }
   window.addEventListener(&#x27;load&#x27;, ajustarEscalaPagina345);
-  window.addEventListener(&#x27;resize&#x27;, ajustarEscalaPagina345);
-  document.addEventListener(&#x27;DOMContentLoaded&#x27;, ajustarEscalaPagina345);
-  ajustarEscalaPagina345();
 })();
 &lt;/script&gt;
 &lt;/head&gt;
@@ -7902,8 +8103,7 @@ window.SCALE_345 = 1;
     &lt;/div&gt;
   &lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;&lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 34.5 kV&lt;/span&gt;&lt;/div&gt;
-&lt;/div&gt;&lt;div id=&quot;unscaled-overlay&quot; style=&quot;position:relative;flex:1;overflow-y:auto;overflow-x:hidden;&quot;&gt;&lt;div id=&quot;page-stage-345&quot; style=&quot;position:absolute;top:0;left:0;width:1950px;height:1180px;transform-origin:0 0;&quot;&gt;
-&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;left:1649px;top:78px;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:grab;text-align:center;width:max-content;&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;div id=&quot;unscaled-overlay&quot; style=&quot;position:relative;flex:1;overflow:hidden;&quot;&gt;&lt;div id=&quot;header-widgets-345&quot; style=&quot;position:absolute;top:0;left:0;width:1918px;height:877px;transform-origin:0 0;z-index:50;&quot;&gt;&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;left:78.154%;top:0.556%;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:grab;text-align:center;width:max-content;&quot;&gt;&lt;/div&gt;
 &lt;div id=&quot;mimico-btn&quot; onclick=&quot;toggleCalib345()&quot;&gt;MIMICO&lt;/div&gt;
 &lt;div id=&quot;alarmas-btn&quot;&gt;ALARMAS &lt;svg width=&quot;16&quot; height=&quot;15&quot; viewBox=&quot;0 0 24 22&quot; style=&quot;vertical-align:middle;margin-left:2px;&quot;&gt;
         &lt;path d=&quot;M12 1 L23 20 L1 20 Z&quot; fill=&quot;#ffdd00&quot; stroke=&quot;#000000&quot; stroke-width=&quot;1.5&quot; stroke-linejoin=&quot;round&quot;/&gt;
@@ -7936,7 +8136,8 @@ window.SCALE_345 = 1;
 &lt;img src=&quot;data:image/png;base64,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&quot; alt=&quot;ON&quot; style=&quot;height:46px;width:auto;display:block;&quot; draggable=&quot;false&quot;&gt;
     &lt;/div&gt;
   &lt;/div&gt;
-&lt;/div&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;div id=&quot;page-stage-345&quot; style=&quot;position:absolute;top:0;left:0;width:1950px;height:1180px;transform-origin:0 0;&quot;&gt;
+
 
 &lt;div class=&quot;scada-wrap&quot; id=&quot;wrap&quot;&gt;
   
@@ -9913,6 +10114,7 @@ function reproducirSonido(elemId, abre){
       &lt;div class=&quot;ctx-item&quot; data-nav=&quot;400kV&quot;&gt;S.E. ENERPYME 400 kV&lt;/div&gt;
       &lt;div class=&quot;ctx-item&quot; data-nav=&quot;115kV&quot;&gt;S.E. ENERPYME 115 kV&lt;/div&gt;
       &lt;div class=&quot;ctx-item&quot; data-nav=&quot;345kV&quot;&gt;S.E. ENERPYME 34.5 kV&lt;/div&gt;
+      &lt;div class=&quot;ctx-item&quot; data-nav=&quot;GENERAL&quot;&gt;RED ELÉCTRICA ENERPYME&lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
   &lt;div class=&quot;ctx-item&quot;&gt;Add Note&lt;/div&gt;
@@ -9966,7 +10168,7 @@ function reproducirSonido(elemId, abre){
 
 &lt;script&gt;
 (function(){
-  var PAGE_ORDER = [&#x27;400kV&#x27;,&#x27;115kV&#x27;,&#x27;345kV&#x27;];
+  var PAGE_ORDER = [&#x27;400kV&#x27;,&#x27;115kV&#x27;,&#x27;345kV&#x27;,&#x27;GENERAL&#x27;];
   var MY_PAGE = &#x27;345kV&#x27;;
   var NAV_MAP2 = {
     &#x27;400kV&#x27;: &#x27;simulador-scada-400kV.html&#x27;,
@@ -10009,7 +10211,117 @@ function reproducirSonido(elemId, abre){
   document.addEventListener(&#x27;DOMContentLoaded&#x27;, ajustarAnchoChannelStatus);
 })();
 &lt;/script&gt;
-&lt;/div&gt;&lt;/div&gt;&lt;!-- /unscaled-overlay --&gt;&lt;!-- /page-stage-345 --&gt;&lt;/body&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;!-- /unscaled-overlay --&gt;&lt;!-- /page-stage-345 --&gt;
+&lt;script&gt;
+/* ============================================================
+   MODO OPERADOR — inyectado para el monitoreo remoto en vivo.
+   - Oculta el panel ENTRENADOR (ahora lo controla el supervisor
+     desde /monitor).
+   - Cada maniobra real (clasList antes/despues distintos) se
+     manda a /api/maniobra con el código de sesión recibido del
+     shell superior por postMessage.
+   ============================================================ */
+window.__paginaNombre = &quot;345kV&quot;;
+window.__sessionCode = null;
+
+/* El CTL solo debe reaccionar cuando el SUPERVISOR dio INICIAR — el
+   shell superior (operador_extra_body) hace el polling a /api/control
+   y nos avisa el estado real por postMessage, ya que aquí adentro del
+   iframe no podemos ver el badge (vive en el documento padre). */
+function _setGrabando(v){
+  try{ libGrabando = v; }catch(e){ window.libGrabando = v; }
+}
+_setGrabando(false);
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function(){ _setGrabando(false); });
+
+window.addEventListener(&#x27;message&#x27;, function(e){
+  if(e.data &amp;&amp; e.data.type === &#x27;session-code&#x27;){
+    window.__sessionCode = e.data.code;
+  }
+  if(e.data &amp;&amp; e.data.type === &#x27;control-estado&#x27;){
+    _setGrabando(e.data.estado === &#x27;grabando&#x27;);
+  }
+  if(e.data &amp;&amp; e.data.type === &#x27;reset-diagrama&#x27;){
+    /* El supervisor pidió RESET: recargar esta página regresa todos
+       los interruptores/cuchillas exactamente al estado de fábrica
+       que trae el HTML horneado, sin tener que enumerar a mano cada
+       elemento de cada una de las 3 páginas (que además tienen
+       ids distintos entre sí). */
+    location.reload();
+  }
+});
+
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function(){
+  var panel = document.getElementById(&#x27;lib-panel&#x27;);
+  if(panel) panel.style.display = &#x27;none&#x27;;
+});
+if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27;lib-panel&#x27;).style.display=&#x27;none&#x27;;
+
+(function(){
+  function buscarTag(elId){
+    /* Preferir la etiqueta corta visible en el diagrama (ej. &quot;A2010&quot;)
+       sobre el nombre interno de variable SIVOC (ej. &quot;POSICION_FASE_A_A2010&quot;),
+       que es más apto para alarmas que para un feed de monitoreo en vivo. */
+    var lbl = document.getElementById(&#x27;lbl-&#x27;+elId);
+    if(lbl &amp;&amp; lbl.textContent.trim()) return lbl.textContent.trim();
+    try{
+      if(typeof SIVOC_400!==&#x27;undefined&#x27; &amp;&amp; SIVOC_400[elId]) return SIVOC_400[elId].tag;
+    }catch(e){}
+    try{
+      if(typeof SIVOC_115!==&#x27;undefined&#x27; &amp;&amp; SIVOC_115[elId]) return SIVOC_115[elId].tag;
+    }catch(e){}
+    try{
+      if(typeof SIVOC_345!==&#x27;undefined&#x27; &amp;&amp; SIVOC_345[elId]) return SIVOC_345[elId].tag;
+    }catch(e){}
+    return elId;
+  }
+
+  function _obtenerEquipoSel(){
+    if(typeof equipoSeleccionado !== &#x27;undefined&#x27; &amp;&amp; equipoSeleccionado) return equipoSeleccionado;
+    if(typeof equipoSeleccionado345 !== &#x27;undefined&#x27; &amp;&amp; equipoSeleccionado345) return equipoSeleccionado345;
+    return null;
+  }
+
+  /* Cada página (400/115/34.5kV) nombra distinto la función que hace
+     el toggle real (ejecutarManiobra, o todo inline, o ejecutarManiobra345
+     con su propia variable equipoSeleccionado345). La única función con
+     el MISMO nombre en las 3 páginas es ejecutarDesdeModal(accion), que
+     es la que llama el botón del modal — así que envolvemos esa,
+     comparando el estado antes/después en vez de depender de la
+     función interna específica de cada página. */
+  function envolverEjecutarDesdeModal(){
+    if(typeof ejecutarDesdeModal !== &#x27;function&#x27;) return false;
+    var _orig = ejecutarDesdeModal;
+    ejecutarDesdeModal = function(accion){
+      var el = _obtenerEquipoSel();
+      var antes = el ? (el.classList.contains(&#x27;closed&#x27;) ? &#x27;CERRADO&#x27; : &#x27;ABIERTO&#x27;) : null;
+      _orig.apply(this, arguments);
+      if(el &amp;&amp; window.__sessionCode){
+        var despues = el.classList.contains(&#x27;closed&#x27;) ? &#x27;CERRADO&#x27; : &#x27;ABIERTO&#x27;;
+        if(antes !== despues){
+          fetch(&#x27;/api/maniobra&#x27;, {
+            method: &#x27;POST&#x27;,
+            headers: {&#x27;Content-Type&#x27;:&#x27;application/json&#x27;},
+            body: JSON.stringify({
+              code: window.__sessionCode,
+              pagina: window.__paginaNombre,
+              equipo: el.id,
+              tag: buscarTag(el.id),
+              antes: antes,
+              despues: despues
+            })
+          }).catch(function(){});
+        }
+      }
+    };
+    return true;
+  }
+  if(!envolverEjecutarDesdeModal()){
+    document.addEventListener(&#x27;DOMContentLoaded&#x27;, envolverEjecutarDesdeModal);
+  }
+})();
+&lt;/script&gt;
+&lt;/body&gt;
 &lt;/html&gt;"></iframe>
 <iframe id="page-GENERAL" class="scada-page" data-page="GENERAL" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;display:block;" srcdoc="&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;es&quot;&gt;
@@ -10293,14 +10605,14 @@ function reproducirSonido(elemId, abre){
     .nav-arrow:active { filter:brightness(0.8); }
     #nav-home { display:flex; align-items:center; justify-content:center; padding:0 1px; pointer-events: none; }
     #header-title {
-      flex:1; min-width:0;
+      position:relative; z-index:2; flex:1; min-width:0;
       display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
       padding-left:14px;
     }
     #header-title::-webkit-scrollbar { display:none; }
-    #title-text { font-family: &#x27;Arial Black&#x27;, Arial, sans-serif; font-size: clamp(14px, 3.2vw, 38px); font-weight: 900; color: #ffffff; letter-spacing: 0.04em; white-space: nowrap; flex-shrink:0; }
+    #title-text { font-family: &#x27;Arial Black&#x27;, Arial, sans-serif; font-size: clamp(14px, 3.2vw, 38px); font-weight: 900; color: #ffffff; letter-spacing: 0.04em; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 8px rgba(0,0,0,.5); flex-shrink:0; }
 
     @keyframes border-blink {
       0%,100% { border-color:#aaa; }
@@ -10926,6 +11238,34 @@ function reproducirSonido(elemId, abre){
   ajustarCanvasCover();
   setTimeout(ajustarCanvasCover, 50);
   setTimeout(ajustarCanvasCover, 300);
+
+/* ── Ajuste automático del título del header: garantiza que el texto
+   SIEMPRE quepa completo dentro del espacio disponible, sin recortarse
+   ni depender de scroll horizontal. Se reduce con transform:scale()
+   solo lo necesario. Igual en las 4 secciones. ── */
+(function(){
+  function ajustarTituloHeader(){
+    var span = document.getElementById(&#x27;title-text&#x27;);
+    var cont = document.getElementById(&#x27;header-title&#x27;);
+    if(!span || !cont) return;
+    span.style.transform = &#x27;none&#x27;;
+    var contW = cont.clientWidth;
+    var textW = span.scrollWidth;
+    if(contW &gt; 0 &amp;&amp; textW &gt; contW){
+      var factor = Math.max(0.5, contW / textW);
+      span.style.transform = &#x27;scale(&#x27; + factor + &#x27;)&#x27;;
+    }
+  }
+  window.addEventListener(&#x27;load&#x27;, ajustarTituloHeader);
+  window.addEventListener(&#x27;resize&#x27;, ajustarTituloHeader);
+  window.addEventListener(&#x27;message&#x27;, function(e){
+    if(e.data &amp;&amp; e.data.type === &#x27;recalcular-escala&#x27;) setTimeout(ajustarTituloHeader, 20);
+  });
+  setTimeout(ajustarTituloHeader, 50);
+  setTimeout(ajustarTituloHeader, 300);
+  ajustarTituloHeader();
+})();
+
 
   // ---------- arrastrar el diagrama con el dedo/mouse, y hacer zoom con
   //            dos dedos (pellizco) — TODO controlado por este mismo
@@ -12219,7 +12559,21 @@ function reproducirSonido(elemId, abre){
 
   let csScale = 1; // factor manual adicional (solo modo calibración, botones +/-)
   function csAplicarTransform(){
-    csWidget.style.transform = &#x27;scale(&#x27; + (CS_BASE_SCALE * csScale) + &#x27;)&#x27;;
+    /* CHANNEL STATUS con escala INDEPENDIENTE del zoom del mímico:
+       se cancela matemáticamente la escala de canvasWrap (mimicoScale)
+       y se aplica encima la MISMA fórmula y referencia (1918x877) que
+       usan 400kV/115kV/34.5kV, para que se vea EXACTAMENTE del mismo
+       tamaño en cualquier pantalla, sin depender del zoom del diagrama. */
+    var HW_REF_W = 1918, HW_REF_H = 877, HW_BREAKPOINT = 900;
+    var availW = workspace.clientWidth, availH = workspace.clientHeight;
+    var escalaIndependiente;
+    if(availW &lt; HW_BREAKPOINT){
+      escalaIndependiente = Math.max(availW/HW_REF_W, availH/HW_REF_H);
+    } else {
+      escalaIndependiente = Math.min(availW/HW_REF_W, availH/HW_REF_H);
+    }
+    var mimicoScaleSeguro = mimicoScale || 1;
+    csWidget.style.transform = &#x27;scale(&#x27; + ((escalaIndependiente * csScale) / mimicoScaleSeguro) + &#x27;)&#x27;;
   }
   csAplicarTransform();
 
@@ -12478,8 +12832,7 @@ function reproducirSonido(elemId, abre){
 })();
 &lt;/script&gt;
 &lt;/body&gt;
-&lt;/html&gt;
-"></iframe></div>
+&lt;/html&gt;"></iframe></div>
 <div id="codigo-banner" style="position:fixed;top:52px;right:8px;z-index:99999;
   background:rgba(10,20,30,.92);border:1px solid rgba(0,220,255,.4);border-radius:6px;
   padding:8px 14px;color:#7ee8ff;font-size:12px;box-shadow:0 2px 10px rgba(0,0,0,.5);
