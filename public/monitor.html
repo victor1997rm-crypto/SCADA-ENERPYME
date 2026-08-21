@@ -3145,10 +3145,14 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
   // nada — se sigue viendo exactamente igual, sin franjas.
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    // &quot;Contener&quot; completo SIEMPRE: el diagrama se ajusta automáticamente
-    // a la pantalla sin recortar nada y sin necesidad de arrastrar para
-    // ver el resto — prioriza el ajuste automático sobre eliminar el
-    // espacio vacío sobrante.
+    if(ww &lt; BREAKPOINT_ESCRITORIO){
+      // Celular: &quot;cover&quot; — llena todo el ancho y alto disponibles,
+      // sin franjas negras (igual que el mímico general), permitiendo
+      // arrastrar con el dedo para ver las partes que no quepan.
+      return Math.max(ww/refW, wh/refH);
+    }
+    // Escritorio: &quot;contener&quot; completo — se ajusta automáticamente a la
+    // pantalla sin recortar nada y sin necesidad de arrastrar.
     return Math.min(ww/refW, wh/refH);
   }
 
@@ -6846,10 +6850,14 @@ window.addEventListener(&#x27;message&#x27;, function(e){
   // el pellizco de zoom con los dedos (sin recentrar).
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    // &quot;Contener&quot; completo SIEMPRE: el diagrama se ajusta automáticamente
-    // a la pantalla sin recortar nada y sin necesidad de arrastrar para
-    // ver el resto — prioriza el ajuste automático sobre eliminar el
-    // espacio vacío sobrante.
+    if(ww &lt; BREAKPOINT_ESCRITORIO){
+      // Celular: &quot;cover&quot; — llena todo el ancho y alto disponibles,
+      // sin franjas negras (igual que el mímico general), permitiendo
+      // arrastrar con el dedo para ver las partes que no quepan.
+      return Math.max(ww/refW, wh/refH);
+    }
+    // Escritorio: &quot;contener&quot; completo — se ajusta automáticamente a la
+    // pantalla sin recortar nada y sin necesidad de arrastrar.
     return Math.min(ww/refW, wh/refH);
   }
 
@@ -7898,9 +7906,14 @@ window.SCALE_345 = 1;
   var panMinX = 0, panMaxX = 0, panMinY = 0, panMaxY = 0;
 
   function escalaConLimiteDeRecorte(ww, wh){
-    // &quot;Contener&quot; completo SIEMPRE: el diagrama se ajusta automáticamente
-    // a la pantalla sin recortar nada y sin necesidad de arrastrar,
-    // igual que 400kV/115kV.
+    if(ww &lt; BREAKPOINT_ESCRITORIO){
+      // Celular: &quot;cover&quot; — llena todo el ancho y alto disponibles,
+      // sin franjas negras (igual que el mímico general), permitiendo
+      // arrastrar con el dedo para ver las partes que no quepan.
+      return Math.max(ww/REF_W, wh/REF_H);
+    }
+    // Escritorio: &quot;contener&quot; completo — se ajusta automáticamente a la
+    // pantalla sin recortar nada y sin necesidad de arrastrar.
     return Math.min(ww/REF_W, wh/REF_H);
   }
 
@@ -7971,7 +7984,9 @@ window.SCALE_345 = 1;
         var availW = overlay.clientWidth;
         var availH = overlay.clientHeight;
         if(availW &lt;= 0 || availH &lt;= 0) return;
-        hwEscala = Math.min(availW/HW_REF_W, availH/HW_REF_H);
+        hwEscala = (availW &lt; BREAKPOINT_ESCRITORIO)
+          ? Math.max(availW/HW_REF_W, availH/HW_REF_H)  // celular: cover, igual que 400kV
+          : Math.min(availW/HW_REF_W, availH/HW_REF_H); // escritorio: contain
         aplicarPosicion();
       }
       if(typeof ResizeObserver !== &#x27;undefined&#x27;){
