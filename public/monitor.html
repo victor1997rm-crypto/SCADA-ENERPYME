@@ -3144,22 +3144,12 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
   // límite. En celular (donde el desajuste es menor) esto no cambia
   // nada — se sigue viendo exactamente igual, sin franjas.
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
-  var MAX_RECORTE = 0.20; // en escritorio, tolera hasta 20% de recorte lateral
-                          // para evitar la franja vacía abajo cuando la
-                          // proporción de pantalla no coincide con la del lienzo
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    if(ww &lt; BREAKPOINT_ESCRITORIO){
-      return Math.max(ww/refW, wh/refH); // celular: cover completo, sin franjas negras
-    }
-    var scaleContain = Math.min(ww/refW, wh/refH);
-    var scaleCover = Math.max(ww/refW, wh/refH);
-    if(scaleCover &lt;= scaleContain) return scaleCover;
-    var scaledDim = Math.max(refW*scaleCover, refH*scaleCover);
-    var availDim = scaledDim === refW*scaleCover ? ww : wh;
-    var recorte = (scaledDim - availDim) / scaledDim;
-    if(recorte &lt;= MAX_RECORTE) return scaleCover;
-    var factor = MAX_RECORTE / recorte;
-    return scaleContain + (scaleCover - scaleContain) * factor;
+    // &quot;Contener&quot; completo SIEMPRE: el diagrama se ajusta automáticamente
+    // a la pantalla sin recortar nada y sin necesidad de arrastrar para
+    // ver el resto — prioriza el ajuste automático sobre eliminar el
+    // espacio vacío sobrante.
+    return Math.min(ww/refW, wh/refH);
   }
 
   function recalcularEscalaYLimites(){
@@ -6855,22 +6845,12 @@ window.addEventListener(&#x27;message&#x27;, function(e){
   // posición — se reutiliza al redimensionar (con recentrado) y durante
   // el pellizco de zoom con los dedos (sin recentrar).
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
-  var MAX_RECORTE = 0.20; // en escritorio, tolera hasta 20% de recorte lateral
-                          // para evitar la franja vacía abajo cuando la
-                          // proporción de pantalla no coincide con la del lienzo
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    if(ww &lt; BREAKPOINT_ESCRITORIO){
-      return Math.max(ww/refW, wh/refH); // celular: cover completo, sin franjas negras
-    }
-    var scaleContain = Math.min(ww/refW, wh/refH);
-    var scaleCover = Math.max(ww/refW, wh/refH);
-    if(scaleCover &lt;= scaleContain) return scaleCover;
-    var scaledDim = Math.max(refW*scaleCover, refH*scaleCover);
-    var availDim = scaledDim === refW*scaleCover ? ww : wh;
-    var recorte = (scaledDim - availDim) / scaledDim;
-    if(recorte &lt;= MAX_RECORTE) return scaleCover;
-    var factor = MAX_RECORTE / recorte;
-    return scaleContain + (scaleCover - scaleContain) * factor;
+    // &quot;Contener&quot; completo SIEMPRE: el diagrama se ajusta automáticamente
+    // a la pantalla sin recortar nada y sin necesidad de arrastrar para
+    // ver el resto — prioriza el ajuste automático sobre eliminar el
+    // espacio vacío sobrante.
+    return Math.min(ww/refW, wh/refH);
   }
 
   function recalcularEscalaYLimites(){
@@ -7907,34 +7887,35 @@ window.SCALE_345 = 1;
 (function(){
   var REF_W = 1950, REF_H = 1180;
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
-  var MAX_RECORTE = 0.08; // en escritorio, tolera hasta 8% de recorte lateral
-                          // para evitar la franja vacía abajo (igual que 400kV/115kV)
 
   var overlay, stage;
+  var hw, hwEscala = 1; // contenedor de CHANNEL STATUS/MIMICO/ALARMAS/reloj:
+                        // se mueve junto con el diagrama (mismo pan), pero
+                        // mantiene su PROPIA escala (igual tamaño que 400kV)
   var escalaActual = 1;
   var stageLeft = 0, stageTop = 0;
   var baseLeft = 0, baseTop = 0;
   var panMinX = 0, panMaxX = 0, panMinY = 0, panMaxY = 0;
 
   function escalaConLimiteDeRecorte(ww, wh){
-    if(ww &lt; BREAKPOINT_ESCRITORIO){
-      return Math.max(ww/REF_W, wh/REF_H); // celular: cover completo, sin franjas negras
-    }
-    var scaleContain = Math.min(ww/REF_W, wh/REF_H);
-    var scaleCover = Math.max(ww/REF_W, wh/REF_H);
-    if(scaleCover &lt;= scaleContain) return scaleCover;
-    var scaledDim = Math.max(REF_W*scaleCover, REF_H*scaleCover);
-    var availDim = scaledDim === REF_W*scaleCover ? ww : wh;
-    var recorte = (scaledDim - availDim) / scaledDim;
-    if(recorte &lt;= MAX_RECORTE) return scaleCover;
-    var factor = MAX_RECORTE / recorte;
-    return scaleContain + (scaleCover - scaleContain) * factor;
+    // &quot;Contener&quot; completo SIEMPRE: el diagrama se ajusta automáticamente
+    // a la pantalla sin recortar nada y sin necesidad de arrastrar,
+    // igual que 400kV/115kV.
+    return Math.min(ww/REF_W, wh/REF_H);
   }
 
   function aplicarPosicion(){
     stage.style.left = stageLeft + &#x27;px&#x27;;
     stage.style.top  = stageTop + &#x27;px&#x27;;
     stage.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
+    if(hw){
+      // MISMO desplazamiento (pan) en píxeles crudos que el diagrama,
+      // para que CHANNEL STATUS/MIMICO/ALARMAS/reloj se muevan juntos
+      // — pero con su PROPIA escala (hwEscala), no la del diagrama.
+      hw.style.left = stageLeft + &#x27;px&#x27;;
+      hw.style.top  = stageTop + &#x27;px&#x27;;
+      hw.style.transform = &#x27;scale(&#x27; + hwEscala + &#x27;)&#x27;;
+    }
   }
 
   var _rafPendiente345 = false;
@@ -7980,23 +7961,18 @@ window.SCALE_345 = 1;
        MIMICO, ALARMAS, reloj): usa el MISMO cálculo y la MISMA referencia
        (1918x877) que 400kV/115kV, para que se vean EXACTAMENTE igual de
        tamaño en cualquier pantalla, sin depender de la escala propia del
-       diagrama de 34.5 (que usa un lienzo distinto, 1950x1180). */
+       diagrama de 34.5 (que usa un lienzo distinto, 1950x1180). La
+       POSICIÓN (pan) sí la comparte con el diagrama — ver aplicarPosicion(). */
     (function(){
       var HW_REF_W = 1918, HW_REF_H = 877;
-      var HW_BREAKPOINT = 900;
-      var hw = document.getElementById(&#x27;header-widgets-345&#x27;);
+      hw = document.getElementById(&#x27;header-widgets-345&#x27;);
       if(!hw) return;
       function ajustar(){
         var availW = overlay.clientWidth;
         var availH = overlay.clientHeight;
         if(availW &lt;= 0 || availH &lt;= 0) return;
-        var escala;
-        if(availW &lt; HW_BREAKPOINT){
-          escala = Math.max(availW/HW_REF_W, availH/HW_REF_H);
-        } else {
-          escala = Math.min(availW/HW_REF_W, availH/HW_REF_H);
-        }
-        hw.style.transform = &#x27;scale(&#x27; + escala + &#x27;)&#x27;;
+        hwEscala = Math.min(availW/HW_REF_W, availH/HW_REF_H);
+        aplicarPosicion();
       }
       if(typeof ResizeObserver !== &#x27;undefined&#x27;){
         new ResizeObserver(ajustar).observe(overlay);
