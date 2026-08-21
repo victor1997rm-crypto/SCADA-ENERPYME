@@ -285,9 +285,10 @@ try{
     }
     #header-title {
       position:relative; z-index:2; flex:1; min-width:0;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      display:flex; flex-direction:column; align-items:flex-end; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
+      padding-right:18px; box-sizing:border-box;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -871,9 +872,6 @@ ke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot;/&gt;
         &lt;rect x=&quot;10.8&quot; y=&quot;7&quot; width=&quot;2.4&quot; height=&quot;7&quot; rx=&quot;1&quot; fill=&quot;#000000&quot;/&gt;
         &lt;circle cx=&quot;12&quot; cy=&quot;16.5&quot; r=&quot;1.4&quot; fill=&quot;#000000&quot;/&gt;
       &lt;/svg&gt;&lt;/div&gt;
-  &lt;button id=&quot;btn-export-pos&quot; style=&quot;position:fixed;top:12px;left:420px;z-index:500;background:rgba(0,40,60,.9);border:1px solid rgba(0,180,220,.4);color:#7ee8ff;font-family:Arial,sans-serif;font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;cursor:pointer;&quot;&gt;💾 EXPORTAR&lt;/button&gt;
-  &lt;button id=&quot;btn-import-pos&quot; style=&quot;position:fixed;top:12px;left:500px;z-index:500;background:rgba(0,40,60,.9);border:1px solid rgba(0,180,220,.4);color:#7ee8ff;font-family:Arial,sans-serif;font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;cursor:pointer;&quot;&gt;📂 IMPORTAR&lt;/button&gt;
-  &lt;input id=&quot;input-import-pos&quot; type=&quot;file&quot; accept=&quot;.json&quot; style=&quot;display:none;&quot;/&gt;
   &lt;!-- PANEL --&gt;
   &lt;div id=&quot;coords-panel&quot;&gt;
     &lt;div id=&quot;panel-header&quot;&gt;MONITOR DE CALIBRACIÓN&lt;/div&gt;
@@ -2864,36 +2862,8 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
     if(cambiado) guardarPosiciones();
   })();
 
-  /* ── EXPORTAR / IMPORTAR posiciones ── */
-  document.getElementById(&#x27;btn-export-pos&#x27;).addEventListener(&#x27;click&#x27;,function(){
-    try{
-      var data={};
-      [&#x27;enerpyme_400kv_posiciones_v1&#x27;].forEach(function(k){
-        var v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v);
-      });
-      var blob=new Blob([JSON.stringify(data,null,2)],{type:&#x27;application/json&#x27;});
-      var a=document.createElement(&#x27;a&#x27;);
-      a.href=URL.createObjectURL(blob);
-      a.download=&#x27;posiciones_400kv_&#x27;+new Date().toISOString().slice(0,10)+&#x27;.json&#x27;;
-      a.click();
-    }catch(e){alert(&#x27;Error al exportar: &#x27;+e.message);}
-  });
-  document.getElementById(&#x27;btn-import-pos&#x27;).addEventListener(&#x27;click&#x27;,function(){
-    document.getElementById(&#x27;input-import-pos&#x27;).click();
-  });
-  document.getElementById(&#x27;input-import-pos&#x27;).addEventListener(&#x27;change&#x27;,function(e){
-    var file=e.target.files[0]; if(!file) return;
-    var reader=new FileReader();
-    reader.onload=function(ev){
-      try{
-        var data=JSON.parse(ev.target.result);
-        Object.keys(data).forEach(function(k){ localStorage.setItem(k,JSON.stringify(data[k])); });
-        alert(&#x27;✓ Posiciones importadas. Recargando...&#x27;);
-        location.reload();
-      }catch(e){alert(&#x27;Error al importar: &#x27;+e.message);}
-    };
-    reader.readAsText(file); e.target.value=&#x27;&#x27;;
-  });
+  /* Botones EXPORTAR/IMPORTAR de posiciones eliminados a pedido del
+     usuario — ya no se muestran ni se usan en ninguna sección. */
   var mimicoBtn=document.getElementById(&#x27;mimico-btn&#x27;);
   if(mimicoBtn){
     mimicoBtn.onclick=function(){
@@ -3147,6 +3117,22 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
     wrap.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
   }
 
+  /* Arrastre/zoom fluido: en vez de tocar el DOM en cada evento de
+     mouse/touch (que puede disparar decenas de veces por segundo y
+     saturar al navegador), solo actualizamos las variables numéricas
+     en el evento, y dejamos que requestAnimationFrame aplique el
+     cambio una sola vez por cuadro — sincronizado con el repintado
+     real de la pantalla, sin trabajo de más ni movimiento a tirones. */
+  var _rafPendiente = false;
+  function solicitarRenderPosicion(){
+    if(_rafPendiente) return;
+    _rafPendiente = true;
+    requestAnimationFrame(function(){
+      _rafPendiente = false;
+      aplicarPosicion();
+    });
+  }
+
   // Calcula escala y límites válidos para el zoom actual, SIN tocar la
   // posición — se reutiliza al redimensionar (con recentrado) y durante
   // el pellizco de zoom con los dedos (sin recentrar).
@@ -3158,11 +3144,22 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
   // límite. En celular (donde el desajuste es menor) esto no cambia
   // nada — se sigue viendo exactamente igual, sin franjas.
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
+  var MAX_RECORTE = 0.20; // en escritorio, tolera hasta 20% de recorte lateral
+                          // para evitar la franja vacía abajo cuando la
+                          // proporción de pantalla no coincide con la del lienzo
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
     if(ww &lt; BREAKPOINT_ESCRITORIO){
       return Math.max(ww/refW, wh/refH); // celular: cover completo, sin franjas negras
     }
-    return Math.min(ww/refW, wh/refH); // escritorio: contener completo, sin recortar nada
+    var scaleContain = Math.min(ww/refW, wh/refH);
+    var scaleCover = Math.max(ww/refW, wh/refH);
+    if(scaleCover &lt;= scaleContain) return scaleCover;
+    var scaledDim = Math.max(refW*scaleCover, refH*scaleCover);
+    var availDim = scaledDim === refW*scaleCover ? ww : wh;
+    var recorte = (scaledDim - availDim) / scaledDim;
+    if(recorte &lt;= MAX_RECORTE) return scaleCover;
+    var factor = MAX_RECORTE / recorte;
+    return scaleContain + (scaleCover - scaleContain) * factor;
   }
 
   function recalcularEscalaYLimites(){
@@ -3315,7 +3312,7 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
           wrapTop  = midY - fyAncla * escalaActual;
           wrapLeft = Math.min(panMaxX, Math.max(panMinX, wrapLeft));
           wrapTop  = Math.min(headerH + panMaxY, Math.max(headerH + panMinY, wrapTop));
-          aplicarPosicion();
+          solicitarRenderPosicion();
         }
         e.preventDefault();
         return;
@@ -3332,7 +3329,7 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
       var headerH2 = ultimoHeaderH;
       wrapLeft = Math.min(panMaxX, Math.max(panMinX, startLeft + dx));
       wrapTop  = Math.min(headerH2 + panMaxY, Math.max(headerH2 + panMinY, startTop + dy));
-      aplicarPosicion();
+      solicitarRenderPosicion();
       e.preventDefault();
     }
 
@@ -3768,9 +3765,10 @@ try{
     }
     #header-title {
       position:relative; z-index:2; flex:1; min-width:0;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      display:flex; flex-direction:column; align-items:flex-end; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
+      padding-right:18px; box-sizing:border-box;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -4163,9 +4161,6 @@ try{
         &lt;rect x=&quot;10.8&quot; y=&quot;7&quot; width=&quot;2.4&quot; height=&quot;7&quot; rx=&quot;1&quot; fill=&quot;#000000&quot;/&gt;
         &lt;circle cx=&quot;12&quot; cy=&quot;16.5&quot; r=&quot;1.4&quot; fill=&quot;#000000&quot;/&gt;
       &lt;/svg&gt;&lt;/div&gt;
-  &lt;button id=&quot;btn-export-pos&quot; style=&quot;position:fixed;top:12px;left:420px;z-index:500;background:rgba(0,40,60,.9);border:1px solid rgba(0,180,220,.4);color:#7ee8ff;font-family:Arial,sans-serif;font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;cursor:pointer;&quot;&gt;💾 EXPORTAR&lt;/button&gt;
-  &lt;button id=&quot;btn-import-pos&quot; style=&quot;position:fixed;top:12px;left:500px;z-index:500;background:rgba(0,40,60,.9);border:1px solid rgba(0,180,220,.4);color:#7ee8ff;font-family:Arial,sans-serif;font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;cursor:pointer;&quot;&gt;📂 IMPORTAR&lt;/button&gt;
-  &lt;input id=&quot;input-import-pos&quot; type=&quot;file&quot; accept=&quot;.json&quot; style=&quot;display:none;&quot;/&gt;
 
 
   &lt;div class=&quot;lv115&quot; id=&quot;lv1&quot; style=&quot;left:1310px;top:62px;height:385px;&quot;&gt;&lt;div class=&quot;lv-dot&quot;&gt;&lt;/div&gt;&lt;div class=&quot;lv-hc&quot; id=&quot;lv1-c&quot;&gt;&lt;/div&gt;&lt;div class=&quot;lv-hb&quot; id=&quot;lv1-b&quot;&gt;&lt;/div&gt;&lt;/div&gt;
@@ -6681,35 +6676,8 @@ function libConfirmarCampo(equipoId, tag){
   log.appendChild(row); log.scrollTop=log.scrollHeight;
 }
 
-/* ════ EXPORTAR / IMPORTAR POSICIONES ════ */
-document.getElementById(&#x27;btn-export-pos&#x27;).addEventListener(&#x27;click&#x27;,function(){
-  try{
-    var data={};
-    [&#x27;enerpyme_115kv_posiciones_v1&#x27;,&#x27;115kv_pos_v1&#x27;,&#x27;115kv_bh2_v1&#x27;,&#x27;115kv_reloj_pos&#x27;].forEach(function(k){
-      var v=localStorage.getItem(k); if(v) data[k]=JSON.parse(v);
-    });
-    var blob=new Blob([JSON.stringify(data,null,2)],{type:&#x27;application/json&#x27;});
-    var a=document.createElement(&#x27;a&#x27;); a.href=URL.createObjectURL(blob);
-    a.download=&#x27;posiciones_115kv_&#x27;+new Date().toISOString().slice(0,10)+&#x27;.json&#x27;;
-    a.click();
-  }catch(e){alert(&#x27;Error: &#x27;+e.message);}
-});
-document.getElementById(&#x27;btn-import-pos&#x27;).addEventListener(&#x27;click&#x27;,function(){
-  document.getElementById(&#x27;input-import-pos&#x27;).click();
-});
-document.getElementById(&#x27;input-import-pos&#x27;).addEventListener(&#x27;change&#x27;,function(e){
-  var file=e.target.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(ev){
-    try{
-      var data=JSON.parse(ev.target.result);
-      Object.keys(data).forEach(function(k){ localStorage.setItem(k,JSON.stringify(data[k])); });
-      alert(&#x27;✓ Posiciones importadas. Recargando...&#x27;);
-      location.reload();
-    }catch(e){alert(&#x27;Error: &#x27;+e.message);}
-  };
-  reader.readAsText(file); e.target.value=&#x27;&#x27;;
-});
+/* Botones EXPORTAR/IMPORTAR de posiciones eliminados a pedido del
+   usuario — ya no se muestran ni se usan en ninguna sección. */
 
 &lt;/script&gt;
 
@@ -6873,15 +6841,36 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     wrap.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
   }
 
+  var _rafPendiente = false;
+  function solicitarRenderPosicion(){
+    if(_rafPendiente) return;
+    _rafPendiente = true;
+    requestAnimationFrame(function(){
+      _rafPendiente = false;
+      aplicarPosicion();
+    });
+  }
+
   // Calcula escala y límites válidos para el zoom actual, SIN tocar la
   // posición — se reutiliza al redimensionar (con recentrado) y durante
   // el pellizco de zoom con los dedos (sin recentrar).
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
+  var MAX_RECORTE = 0.20; // en escritorio, tolera hasta 20% de recorte lateral
+                          // para evitar la franja vacía abajo cuando la
+                          // proporción de pantalla no coincide con la del lienzo
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
     if(ww &lt; BREAKPOINT_ESCRITORIO){
       return Math.max(ww/refW, wh/refH); // celular: cover completo, sin franjas negras
     }
-    return Math.min(ww/refW, wh/refH); // escritorio: contener completo, sin recortar nada
+    var scaleContain = Math.min(ww/refW, wh/refH);
+    var scaleCover = Math.max(ww/refW, wh/refH);
+    if(scaleCover &lt;= scaleContain) return scaleCover;
+    var scaledDim = Math.max(refW*scaleCover, refH*scaleCover);
+    var availDim = scaledDim === refW*scaleCover ? ww : wh;
+    var recorte = (scaledDim - availDim) / scaledDim;
+    if(recorte &lt;= MAX_RECORTE) return scaleCover;
+    var factor = MAX_RECORTE / recorte;
+    return scaleContain + (scaleCover - scaleContain) * factor;
   }
 
   function recalcularEscalaYLimites(){
@@ -7030,7 +7019,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
           wrapTop  = midY - fyAncla * escalaActual;
           wrapLeft = Math.min(panMaxX, Math.max(panMinX, wrapLeft));
           wrapTop  = Math.min(headerH + panMaxY, Math.max(headerH + panMinY, wrapTop));
-          aplicarPosicion();
+          solicitarRenderPosicion();
         }
         e.preventDefault();
         return;
@@ -7047,7 +7036,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
       var headerH2 = ultimoHeaderH;
       wrapLeft = Math.min(panMaxX, Math.max(panMinX, startLeft + dx));
       wrapTop  = Math.min(headerH2 + panMaxY, Math.max(headerH2 + panMinY, startTop + dy));
-      aplicarPosicion();
+      solicitarRenderPosicion();
       e.preventDefault();
     }
 
@@ -7458,9 +7447,10 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     }
     #header-title {
       position:relative; z-index:2; flex:1; min-width:0;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      display:flex; flex-direction:column; align-items:flex-end; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
+      padding-right:18px; box-sizing:border-box;
     }
     #header-title::-webkit-scrollbar { display:none; }
 
@@ -7917,6 +7907,8 @@ window.SCALE_345 = 1;
 (function(){
   var REF_W = 1950, REF_H = 1180;
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
+  var MAX_RECORTE = 0.08; // en escritorio, tolera hasta 8% de recorte lateral
+                          // para evitar la franja vacía abajo (igual que 400kV/115kV)
 
   var overlay, stage;
   var escalaActual = 1;
@@ -7928,7 +7920,15 @@ window.SCALE_345 = 1;
     if(ww &lt; BREAKPOINT_ESCRITORIO){
       return Math.max(ww/REF_W, wh/REF_H); // celular: cover completo, sin franjas negras
     }
-    return Math.min(ww/REF_W, wh/REF_H); // escritorio: contener completo, sin recortar nada
+    var scaleContain = Math.min(ww/REF_W, wh/REF_H);
+    var scaleCover = Math.max(ww/REF_W, wh/REF_H);
+    if(scaleCover &lt;= scaleContain) return scaleCover;
+    var scaledDim = Math.max(REF_W*scaleCover, REF_H*scaleCover);
+    var availDim = scaledDim === REF_W*scaleCover ? ww : wh;
+    var recorte = (scaledDim - availDim) / scaledDim;
+    if(recorte &lt;= MAX_RECORTE) return scaleCover;
+    var factor = MAX_RECORTE / recorte;
+    return scaleContain + (scaleCover - scaleContain) * factor;
   }
 
   function aplicarPosicion(){
@@ -7937,6 +7937,19 @@ window.SCALE_345 = 1;
     stage.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
   }
 
+  var _rafPendiente345 = false;
+  function solicitarRenderPosicion(){
+    if(_rafPendiente345) return;
+    _rafPendiente345 = true;
+    requestAnimationFrame(function(){
+      _rafPendiente345 = false;
+      aplicarPosicion();
+    });
+  }
+
+  var zoom = 1; // factor de zoom manual (pellizco con dos dedos)
+  var ZOOM_MIN = 1, ZOOM_MAX = 4;
+
   function ajustarEscalaPagina345(){
     if(!overlay) overlay = document.getElementById(&#x27;unscaled-overlay&#x27;);
     if(!stage) stage = document.getElementById(&#x27;page-stage-345&#x27;);
@@ -7944,7 +7957,7 @@ window.SCALE_345 = 1;
     var availW = overlay.clientWidth;
     var availH = overlay.clientHeight;
     if(availW &lt;= 0 || availH &lt;= 0) return;
-    escalaActual = escalaConLimiteDeRecorte(availW, availH);
+    escalaActual = escalaConLimiteDeRecorte(availW, availH) * zoom;
     window.SCALE_345 = escalaActual;
     var scaledW = REF_W * escalaActual, scaledH = REF_H * escalaActual;
     panMinX = Math.min(0, availW - scaledW);
@@ -7953,8 +7966,8 @@ window.SCALE_345 = 1;
     panMaxY = 0;
     baseLeft = (availW - scaledW) / 2;
     baseTop  = 0; // pegado al header, sin espacio de sobra arriba/abajo (igual que 400kV/115kV)
-    stageLeft = baseLeft;
-    stageTop  = baseTop;
+    stageLeft = Math.min(panMaxX, Math.max(panMinX, baseLeft));
+    stageTop  = Math.min(panMaxY, Math.max(panMinY, baseTop));
     aplicarPosicion();
   }
 
@@ -8026,48 +8039,111 @@ window.SCALE_345 = 1;
       ajustarTituloHeader();
     })();
 
-    /* Arrastrar con el dedo/mouse cuando el lienzo no cabe completo
-       (modo &quot;cover&quot; en celular). Solo se activa tras un pequeño umbral
-       de movimiento, para no interferir con clics normales. */
-    var UMBRAL_PX = 6;
-    var posible = false, arrastrando = false;
-    var startX = 0, startY = 0, startLeft = 0, startTop = 0;
+    /* Arrastrar con el dedo/mouse cuando el lienzo no cabe completo,
+       y zoom con pellizco de dos dedos — MISMO sistema (Pointer Events
+       unificado) que usan 400kV/115kV, para que se sienta igual de
+       fluido en todas las secciones. */
+    (function habilitarArrastreYZoom(){
+      var UMBRAL_PX = 6;
+      var activos = {};
+      var ordenIds = [];
+      var posible = false, arrastrando = false;
+      var startX = 0, startY = 0, startLeft = 0, startTop = 0;
+      var pellizcando = false, distInicial = 0, zoomInicial = 1, fxAncla = 0, fyAncla = 0;
 
-    function onDown(x, y, target){
-      if(target &amp;&amp; target.closest &amp;&amp; target.closest(&#x27;.cq-handle,#cuadro-punteado&#x27;)) return;
-      posible = true; arrastrando = false;
-      startX = x; startY = y; startLeft = stageLeft; startTop = stageTop;
-    }
-    function onMove(x, y, ev){
-      if(!posible) return;
-      var dx = x - startX, dy = y - startY;
-      if(!arrastrando){
-        if(Math.abs(dx) &lt; UMBRAL_PX &amp;&amp; Math.abs(dy) &lt; UMBRAL_PX) return;
-        arrastrando = true;
+      function distanciaEntre(p1, p2){
+        var dx = p2.x - p1.x, dy = p2.y - p1.y;
+        return Math.sqrt(dx*dx + dy*dy);
       }
-      if(ev &amp;&amp; ev.cancelable) ev.preventDefault();
-      var nl = startLeft + dx, nt = startTop + dy;
-      nl = Math.min(panMaxX, Math.max(panMinX, nl));
-      nt = Math.min(panMaxY, Math.max(panMinY, nt));
-      stageLeft = nl; stageTop = nt;
-      aplicarPosicion();
-    }
-    function onUp(){ posible = false; arrastrando = false; }
+      function contarActivos(){ return ordenIds.length; }
 
-    overlay.addEventListener(&#x27;mousedown&#x27;, function(e){ onDown(e.clientX, e.clientY, e.target); });
-    window.addEventListener(&#x27;mousemove&#x27;, function(e){ onMove(e.clientX, e.clientY, e); });
-    window.addEventListener(&#x27;mouseup&#x27;, onUp);
+      function onDown(e){
+        var header = document.getElementById(&#x27;scada-header&#x27;);
+        if(header &amp;&amp; header.contains(e.target)) return;
+        if(e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(&#x27;.cq-handle,#cuadro-punteado&#x27;)) return;
+        activos[e.pointerId] = {x: e.clientX, y: e.clientY};
+        if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
+        try{ overlay.setPointerCapture(e.pointerId); }catch(err){}
+        if(contarActivos() === 2){
+          posible = false;
+          arrastrando = false;
+          pellizcando = true;
+          var p1 = activos[ordenIds[0]], p2 = activos[ordenIds[1]];
+          distInicial = distanciaEntre(p1, p2);
+          zoomInicial = zoom;
+          var midX0 = (p1.x + p2.x) / 2, midY0 = (p1.y + p2.y) / 2;
+          var r0 = overlay.getBoundingClientRect();
+          fxAncla = (midX0 - r0.left - stageLeft) / escalaActual;
+          fyAncla = (midY0 - r0.top - stageTop) / escalaActual;
+        } else if(contarActivos() === 1){
+          pellizcando = false;
+          posible = true;
+          arrastrando = false;
+          startX = e.clientX; startY = e.clientY;
+          startLeft = stageLeft; startTop = stageTop;
+        }
+      }
 
-    overlay.addEventListener(&#x27;touchstart&#x27;, function(e){
-      if(e.touches.length !== 1) return;
-      onDown(e.touches[0].clientX, e.touches[0].clientY, e.target);
-    }, {passive:true});
-    overlay.addEventListener(&#x27;touchmove&#x27;, function(e){
-      if(e.touches.length !== 1) return;
-      onMove(e.touches[0].clientX, e.touches[0].clientY, e);
-    }, {passive:false});
-    overlay.addEventListener(&#x27;touchend&#x27;, onUp);
-    overlay.addEventListener(&#x27;touchcancel&#x27;, onUp);
+      function onMove(e){
+        if(!activos[e.pointerId]) return;
+        activos[e.pointerId] = {x: e.clientX, y: e.clientY};
+
+        if(pellizcando &amp;&amp; contarActivos() &gt;= 2){
+          var p1 = activos[ordenIds[0]], p2 = activos[ordenIds[1]];
+          var distActual = distanciaEntre(p1, p2);
+          var midX = (p1.x + p2.x) / 2, midY = (p1.y + p2.y) / 2;
+          var r = overlay.getBoundingClientRect();
+          if(distInicial &gt; 0){
+            var factor = distActual / distInicial;
+            zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomInicial * factor));
+            ajustarEscalaPagina345();
+            stageLeft = (midX - r.left) - fxAncla * escalaActual;
+            stageTop  = (midY - r.top)  - fyAncla * escalaActual;
+            stageLeft = Math.min(panMaxX, Math.max(panMinX, stageLeft));
+            stageTop  = Math.min(panMaxY, Math.max(panMinY, stageTop));
+            solicitarRenderPosicion();
+          }
+          e.preventDefault();
+          return;
+        }
+
+        if(!posible) return;
+        var dx = e.clientX - startX, dy = e.clientY - startY;
+        if(!arrastrando){
+          if(Math.abs(dx) &lt; UMBRAL_PX &amp;&amp; Math.abs(dy) &lt; UMBRAL_PX) return;
+          arrastrando = true;
+          overlay.style.cursor = &#x27;grabbing&#x27;;
+        }
+        stageLeft = Math.min(panMaxX, Math.max(panMinX, startLeft + dx));
+        stageTop  = Math.min(panMaxY, Math.max(panMinY, startTop + dy));
+        solicitarRenderPosicion();
+        e.preventDefault();
+      }
+
+      function onUp(e){
+        delete activos[e.pointerId];
+        var idx = ordenIds.indexOf(e.pointerId);
+        if(idx !== -1) ordenIds.splice(idx, 1);
+        if(contarActivos() &lt; 2) pellizcando = false;
+        if(contarActivos() === 1){
+          var pt = activos[ordenIds[0]];
+          posible = true;
+          arrastrando = false;
+          startX = pt.x; startY = pt.y;
+          startLeft = stageLeft; startTop = stageTop;
+        } else if(contarActivos() === 0){
+          posible = false;
+          arrastrando = false;
+          overlay.style.cursor = &#x27;&#x27;;
+        }
+      }
+
+      overlay.style.touchAction = &#x27;none&#x27;;
+      overlay.addEventListener(&#x27;pointerdown&#x27;, onDown);
+      overlay.addEventListener(&#x27;pointermove&#x27;, onMove);
+      overlay.addEventListener(&#x27;pointerup&#x27;, onUp);
+      overlay.addEventListener(&#x27;pointercancel&#x27;, onUp);
+    })();
   }
 
   if(document.readyState === &#x27;loading&#x27;){
@@ -8110,9 +8186,6 @@ window.SCALE_345 = 1;
         &lt;rect x=&quot;10.8&quot; y=&quot;7&quot; width=&quot;2.4&quot; height=&quot;7&quot; rx=&quot;1&quot; fill=&quot;#000000&quot;/&gt;
         &lt;circle cx=&quot;12&quot; cy=&quot;16.5&quot; r=&quot;1.4&quot; fill=&quot;#000000&quot;/&gt;
       &lt;/svg&gt;&lt;/div&gt;
-&lt;button id=&quot;btn-export-pos&quot; style=&quot;position:absolute;top:12px;left:420px;z-index:500;background:rgba(0,40,60,.9);border:1px solid rgba(0,180,220,.4);color:#7ee8ff;font-family:Arial,sans-serif;font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;cursor:pointer;&quot;&gt;&amp;#128190; EXPORTAR&lt;/button&gt;
-&lt;button id=&quot;btn-import-pos&quot; style=&quot;position:absolute;top:12px;left:500px;z-index:500;background:rgba(0,40,60,.9);border:1px solid rgba(0,180,220,.4);color:#7ee8ff;font-family:Arial,sans-serif;font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;cursor:pointer;&quot;&gt;&amp;#128193; IMPORTAR&lt;/button&gt;
-&lt;input id=&quot;input-import-pos&quot; type=&quot;file&quot; accept=&quot;.json&quot; style=&quot;display:none;&quot;/&gt;
 &lt;div id=&quot;channel-status&quot; style=&quot;position:absolute;left:3px;top:52px;z-index:150;cursor:default;user-select:none;
   background:transparent;border:none;width:auto;&quot;&gt;
   &lt;!-- Header sin borde exterior --&gt;
@@ -10496,10 +10569,10 @@ function reproducirSonido(elemId, abre){
     #nav-home { display:flex; align-items:center; justify-content:center; padding:0 1px; pointer-events: none; }
     #header-title {
       position:relative; z-index:2; flex:1; min-width:0;
-      display:flex; flex-direction:column; align-items:flex-start; justify-content:center;
+      display:flex; flex-direction:column; align-items:flex-end; justify-content:center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; -ms-overflow-style:none;
-      padding-left:14px;
+      padding-right:18px; box-sizing:border-box;
     }
     #header-title::-webkit-scrollbar { display:none; }
     #title-text { font-family: &#x27;Arial Black&#x27;, Arial, sans-serif; font-size: clamp(14px, 3.2vw, 38px); font-weight: 900; color: #ffffff; letter-spacing: 0.04em; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 8px rgba(0,0,0,.5); flex-shrink:0; }
@@ -10572,7 +10645,7 @@ function reproducirSonido(elemId, abre){
     &lt;span id=&quot;title-text&quot;&gt;RED ELÉCTRICA ENERPYME&lt;/span&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute; left:50%; top:44px; transform:translateX(-50%); z-index:20; font-family:&#x27;Courier New&#x27;,monospace; font-size:clamp(10px,1.3vw,18px); font-weight:700; color:#00ee44; letter-spacing:.22em; white-space:nowrap; text-shadow:0 0 10px rgba(0,238,68,.7); cursor:grab; text-align:center; width:max-content;&quot;&gt;&lt;/div&gt;
+&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute; left:50%; top:44px; transform:translateX(-50%); z-index:20; font-family:&#x27;Courier New&#x27;,monospace; font-size:clamp(10px,1.3vw,18px); font-weight:700; color:#00ee44; letter-spacing:.22em; white-space:nowrap; text-shadow:0 0 10px rgba(0,238,68,.7); cursor:default; pointer-events:none; text-align:center; width:max-content;&quot;&gt;&lt;/div&gt;
 
 &lt;div id=&quot;workspace&quot;&gt;
   &lt;div id=&quot;canvasWrap&quot;&gt;
@@ -10958,6 +11031,16 @@ function reproducirSonido(elemId, abre){
     // se queda siempre fijo y estable.
   }
 
+  var _rafPendienteGeneral = false;
+  function solicitarRenderCanvas(){
+    if(_rafPendienteGeneral) return;
+    _rafPendienteGeneral = true;
+    requestAnimationFrame(function(){
+      _rafPendienteGeneral = false;
+      aplicarPosicionCanvas();
+    });
+  }
+
   // Calcula escala y límites válidos de arrastre para el &quot;zoom&quot; actual,
   // SIN tocar la posición (canvasLeft/canvasTop) — se reutiliza tanto al
   // redimensionar la pantalla (con recentrado) como durante el pellizco
@@ -11224,7 +11307,7 @@ function reproducirSonido(elemId, abre){
           canvasTop  = midY - fyAncla * mimicoScale;
           canvasLeft = Math.min(panMaxX, Math.max(panMinX, canvasLeft));
           canvasTop  = Math.min(panMaxY, Math.max(panMinY, canvasTop));
-          aplicarPosicionCanvas();
+          solicitarRenderCanvas();
           try{ csAplicarTransform(); }catch(err){}
           try{ alinearChannelStatusConMapas(); }catch(err){}
         }
@@ -11242,7 +11325,7 @@ function reproducirSonido(elemId, abre){
       }
       canvasLeft = Math.min(panMaxX, Math.max(panMinX, startLeft + dx));
       canvasTop  = Math.min(panMaxY, Math.max(panMinY, startTop + dy));
-      aplicarPosicionCanvas();
+      solicitarRenderCanvas();
       e.preventDefault();
     }
 
@@ -12516,66 +12599,40 @@ function reproducirSonido(elemId, abre){
     csAplicarTransform();
   });
 
-  // ---------- reloj: arrastrable, anclado al MISMO lienzo que usa
-  //            MAPAS / CHANNEL STATUS (canvasWrap), no a la ventana.
-  //            Así siempre queda en el mismo lugar relativo al
-  //            diagrama, sin importar el tamaño/proporción del monitor.
-  const HC_LS_KEY = &#x27;enerpyme_diagrama_general_clockpos_v2&#x27;;
+  // ---------- reloj: tamaño y posición fijos, IGUAL que en
+  //            400kV/115kV/34.5kV (no se puede arrastrar). Usa la
+  //            misma fórmula de escala independiente que CHANNEL STATUS
+  //            (referencia 1918x877), para que se vea del mismo tamaño
+  //            sin importar el zoom del mímico. ----------
   const headerClock = document.getElementById(&#x27;header-clock&#x27;);
   const hcCanvasRef = document.getElementById(&#x27;canvasWrap&#x27;);
   if(headerClock &amp;&amp; hcCanvasRef){
-    let hcFracX = 0.87, hcFracY = 0.005; // por defecto: arriba a la derecha, justo encima de CHANNEL STATUS / MAPAS
+    const hcFracX = 0.87, hcFracY = 0.005; // posición fija: arriba a la derecha
+    const HC_REF_W = 1918, HC_REF_H = 877, HC_BREAKPOINT = 900;
+
+    function hcEscalaIndependiente(){
+      const availW = workspace.clientWidth, availH = workspace.clientHeight;
+      if(availW &lt;= 0 || availH &lt;= 0) return 1;
+      if(availW &lt; HC_BREAKPOINT){
+        return Math.max(availW/HC_REF_W, availH/HC_REF_H);
+      }
+      return Math.min(availW/HC_REF_W, availH/HC_REF_H);
+    }
 
     function hcApplyFrac(fx, fy){
       const r = hcCanvasRef.getBoundingClientRect();
+      const escala = hcEscalaIndependiente();
       headerClock.style.position = &#x27;fixed&#x27;;
       headerClock.style.left = (r.left + fx * r.width) + &#x27;px&#x27;;
       headerClock.style.top = (r.top + fy * r.height) + &#x27;px&#x27;;
-      headerClock.style.transform = &#x27;translateX(-50%)&#x27;;
+      headerClock.style.transform = &#x27;translateX(-50%) scale(&#x27; + escala + &#x27;)&#x27;;
+      headerClock.style.transformOrigin = &#x27;top center&#x27;;
+      headerClock.style.cursor = &#x27;default&#x27;;
+      headerClock.style.pointerEvents = &#x27;none&#x27;; // fijo: no se puede arrastrar ni hacer clic
     }
-    // El diagrama ahora se puede arrastrar con el dedo/mouse (ver
-    // habilitarArrastreCanvas); cada vez que se mueve, hay que recalcular
-    // la posición del reloj también, no solo cuando cambia el tamaño de
-    // la ventana.
     window.__hcReposicionar = function(){ hcApplyFrac(hcFracX, hcFracY); };
-
-    (function hcTryRestore(){
-      try{
-        const raw = localStorage.getItem(HC_LS_KEY);
-        if(raw){
-          const p = JSON.parse(raw);
-          hcFracX = p.fx; hcFracY = p.fy;
-        }
-      }catch(e){}
-      hcApplyFrac(hcFracX, hcFracY);
-    })();
-
+    hcApplyFrac(hcFracX, hcFracY);
     window.addEventListener(&#x27;resize&#x27;, ()=&gt; hcApplyFrac(hcFracX, hcFracY));
-
-    headerClock.addEventListener(&#x27;mousedown&#x27;, (e)=&gt;{
-      e.preventDefault();
-      e.stopPropagation();
-      const rect = headerClock.getBoundingClientRect();
-      const offsetX = e.clientX - rect.left;
-      const offsetY = e.clientY - rect.top;
-      function onMove(ev){
-        const r = hcCanvasRef.getBoundingClientRect();
-        const leftPx = ev.clientX - offsetX;
-        const topPx = ev.clientY - offsetY;
-        hcFracX = (leftPx - r.left) / r.width;
-        hcFracY = (topPx - r.top) / r.height;
-        hcApplyFrac(hcFracX, hcFracY);
-      }
-      function onUp(){
-        window.removeEventListener(&#x27;mousemove&#x27;, onMove);
-        window.removeEventListener(&#x27;mouseup&#x27;, onUp);
-        try{
-          localStorage.setItem(HC_LS_KEY, JSON.stringify({fx: hcFracX, fy: hcFracY}));
-        }catch(e){}
-      }
-      window.addEventListener(&#x27;mousemove&#x27;, onMove);
-      window.addEventListener(&#x27;mouseup&#x27;, onUp);
-    });
   }
   function setBgVisible(visible){
     bgImg.style.display = visible ? &#x27;block&#x27; : &#x27;none&#x27;;
