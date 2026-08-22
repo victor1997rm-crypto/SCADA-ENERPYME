@@ -7912,11 +7912,16 @@ window.SCALE_345 = 1;
     stage.style.top  = stageTop + &#x27;px&#x27;;
     stage.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
     if(hw){
-      // MISMO desplazamiento (pan) en píxeles crudos que el diagrama,
-      // para que CHANNEL STATUS/MIMICO/ALARMAS/reloj se muevan juntos
-      // — pero con su PROPIA escala (hwEscala), no la del diagrama.
-      hw.style.left = stageLeft + &#x27;px&#x27;;
-      hw.style.top  = stageTop + &#x27;px&#x27;;
+      // IMPORTANTE: header-widgets-345 (CHANNEL STATUS/MIMICO/ALARMAS/reloj)
+      // NO sigue el pan del diagrama. Es MUCHO más ancho que pantallas
+      // angostas (debe mostrar widgets tanto a la izquierda como a la
+      // derecha), así que si siguiera el pan del diagrama, MIMICO podía
+      // quedar fuera de la pantalla y volverse imposible de pulsar —
+      // dejándolo inutilizable. Se queda siempre fijo en su posición
+      // natural (0,0), garantizando que MIMICO/ALARMAS siempre se puedan
+      // tocar, sin importar cuánto se haya desplazado el diagrama.
+      hw.style.left = &#x27;0px&#x27;;
+      hw.style.top  = &#x27;0px&#x27;;
       hw.style.transform = &#x27;scale(&#x27; + hwEscala + &#x27;)&#x27;;
     }
   }
@@ -8040,7 +8045,25 @@ window.SCALE_345 = 1;
       function onDown(e){
         var header = document.getElementById(&#x27;scada-header&#x27;);
         if(header &amp;&amp; header.contains(e.target)) return;
-        if(e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(&#x27;.cq-handle,#cuadro-punteado,#mimico-btn,#alarmas-btn,#channel-status,#header-clock&#x27;)) return;
+        /* Los widgets fijos del header (MIMICO/ALARMAS/CHANNEL STATUS/reloj)
+           siempre quedan excluidos del pan general — son clickeables en
+           todo momento, no solo durante calibración. */
+        if(e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(
+          &#x27;#mimico-btn,#alarmas-btn,#channel-status,#header-clock&#x27;
+        )) return;
+        /* Durante MIMICO (calibración), tampoco interceptar el toque si
+           cae sobre un elemento con su PROPIO arrastre individual activo
+           (símbolos, líneas, controles, el recuadro punteado y sus
+           manijas, el transformador ref-tp-1) — de lo contrario, en un
+           dispositivo TÁCTIL real, capturar el puntero aquí puede chocar
+           con el arrastre individual de ese elemento, impidiendo que se
+           mueva y que se guarde su posición. Fuera de MIMICO no hace
+           falta excluirlos: no tienen arrastre propio activo entonces,
+           y el usuario debe poder desplazar la vista tocando cualquier
+           parte del diagrama, incluida el área del recuadro punteado. */
+        if(_calib345 &amp;&amp; e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(
+          &#x27;.cq-handle,#cuadro-punteado,.lv345,.lh345,.h345c,.elem,.ctl-wrap,.static-ref,.acom-wrap,.node-label,#ref-tp-1&#x27;
+        )) return;
         activos[e.pointerId] = {x: e.clientX, y: e.clientY};
         if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
         try{ overlay.setPointerCapture(e.pointerId); }catch(err){}
