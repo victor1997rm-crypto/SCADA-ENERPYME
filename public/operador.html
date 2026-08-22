@@ -639,6 +639,7 @@ try{
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
+&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;right:14px;top:50%;transform:translateY(-50%);z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;
     &lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 400 kV&lt;/span&gt;
   &lt;/div&gt;
@@ -913,7 +914,7 @@ ke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot;/&gt;
 &lt;/div&gt;
 &lt;div id=&quot;disp-volt-b1&quot; style=&quot;position:absolute;left:77.529%;top:14.826%;z-index:25;cursor:grab;user-select:none;&quot;&gt;&lt;span id=&quot;disp-volt-b1-val&quot; style=&quot;font-family:&#x27;Courier New&#x27;,monospace;font-size:11px;font-weight:700;color:#00ee44;letter-spacing:.08em;white-space:nowrap;&quot;&gt;407.11&lt;/span&gt;&lt;span style=&quot;font-family:&#x27;Courier New&#x27;,monospace;font-size:11px;font-weight:700;color:#00ee44;margin-left:4px;&quot;&gt;kV&lt;/span&gt;&lt;/div&gt;
 &lt;div id=&quot;disp-volt-b2&quot; style=&quot;position:absolute;left:77.216%;top:77.666%;z-index:25;cursor:grab;user-select:none;&quot;&gt;&lt;span id=&quot;disp-volt-b2-val&quot; style=&quot;font-family:&#x27;Courier New&#x27;,monospace;font-size:11px;font-weight:700;color:#00ee44;letter-spacing:.08em;white-space:nowrap;&quot;&gt;406.82&lt;/span&gt;&lt;span style=&quot;font-family:&#x27;Courier New&#x27;,monospace;font-size:11px;font-weight:700;color:#00ee44;margin-left:4px;&quot;&gt;kV&lt;/span&gt;&lt;/div&gt;
-&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;left:78.154%;top:0.556%;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:grab;text-align:center;width:max-content;&quot;&gt;&lt;/div&gt;
+
 &lt;div id=&quot;med-panel&quot; style=&quot;position:absolute;left:86.913%;top:7.299%;right:auto;cursor:move&quot;&gt;
 
   &lt;!-- ENR A0010 — semáforo físico --&gt;
@@ -4132,6 +4133,7 @@ try{
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
+&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;right:14px;top:50%;transform:translateY(-50%);z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;
     &lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 115 kV&lt;/span&gt;
   &lt;/div&gt;
@@ -4797,7 +4799,7 @@ try{
     &lt;/div&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;left:77.998%;top:0.228%;transform:none;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:grab;text-align:center;width:max-content;&quot;&gt;&lt;/div&gt;
+
 &lt;/div&gt;&lt;!-- /scada-wrap --&gt;
 &lt;/div&gt;&lt;!-- /scada-outer --&gt;
 
@@ -7705,10 +7707,10 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
       }
     }
     #mimico-btn {
-      left:190px; top:95px;
+      left:8px; top:100px;
     }
     #alarmas-btn {
-      left:190px; top:124px;
+      left:8px; top:129px;
     }
     /* En modo normal: quitar cursor move de todos los elementos del diagrama */
     body:not(.modo-calibracion) .elem { cursor:default !important; }
@@ -7912,16 +7914,13 @@ window.SCALE_345 = 1;
     stage.style.top  = stageTop + &#x27;px&#x27;;
     stage.style.transform = &#x27;scale(&#x27; + escalaActual + &#x27;)&#x27;;
     if(hw){
-      // IMPORTANTE: header-widgets-345 (CHANNEL STATUS/MIMICO/ALARMAS/reloj)
-      // NO sigue el pan del diagrama. Es MUCHO más ancho que pantallas
-      // angostas (debe mostrar widgets tanto a la izquierda como a la
-      // derecha), así que si siguiera el pan del diagrama, MIMICO podía
-      // quedar fuera de la pantalla y volverse imposible de pulsar —
-      // dejándolo inutilizable. Se queda siempre fijo en su posición
-      // natural (0,0), garantizando que MIMICO/ALARMAS siempre se puedan
-      // tocar, sin importar cuánto se haya desplazado el diagrama.
-      hw.style.left = &#x27;0px&#x27;;
-      hw.style.top  = &#x27;0px&#x27;;
+      // CHANNEL STATUS/MIMICO/ALARMAS/reloj se mueven JUNTO con el
+      // diagrama (mismo desplazamiento en píxeles), igual que en
+      // 400kV/115kV — decisión del usuario, aceptando que en pantallas
+      // muy angostas MIMICO pueda quedar momentáneamente fuera de vista
+      // hasta arrastrar de vuelta. Mantiene su propia escala (hwEscala).
+      hw.style.left = stageLeft + &#x27;px&#x27;;
+      hw.style.top  = stageTop + &#x27;px&#x27;;
       hw.style.transform = &#x27;scale(&#x27; + hwEscala + &#x27;)&#x27;;
     }
   }
@@ -8181,14 +8180,15 @@ window.SCALE_345 = 1;
       &lt;/span&gt;
     &lt;/div&gt;
   &lt;/div&gt;
-  &lt;div id=&quot;header-title&quot;&gt;&lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 34.5 kV&lt;/span&gt;&lt;/div&gt;
-&lt;/div&gt;&lt;div id=&quot;unscaled-overlay&quot; style=&quot;position:relative;flex:1;overflow:hidden;&quot;&gt;&lt;div id=&quot;header-widgets-345&quot; style=&quot;position:absolute;top:0;left:0;width:1918px;height:877px;transform-origin:0 0;z-index:50;pointer-events:none;&quot;&gt;&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;left:78.154%;top:0.556%;z-index:20;pointer-events:auto;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);cursor:grab;text-align:center;width:max-content;&quot;&gt;&lt;/div&gt;
-&lt;div id=&quot;mimico-btn&quot; onclick=&quot;toggleCalib345()&quot;&gt;MIMICO&lt;/div&gt;
+  &lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;right:14px;top:50%;transform:translateY(-50%);z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;&lt;div id=&quot;mimico-btn&quot; onclick=&quot;toggleCalib345()&quot;&gt;MIMICO&lt;/div&gt;
 &lt;div id=&quot;alarmas-btn&quot;&gt;ALARMAS &lt;svg width=&quot;16&quot; height=&quot;15&quot; viewBox=&quot;0 0 24 22&quot; style=&quot;vertical-align:middle;margin-left:2px;&quot;&gt;
         &lt;path d=&quot;M12 1 L23 20 L1 20 Z&quot; fill=&quot;#ffdd00&quot; stroke=&quot;#000000&quot; stroke-width=&quot;1.5&quot; stroke-linejoin=&quot;round&quot;/&gt;
         &lt;rect x=&quot;10.8&quot; y=&quot;7&quot; width=&quot;2.4&quot; height=&quot;7&quot; rx=&quot;1&quot; fill=&quot;#000000&quot;/&gt;
         &lt;circle cx=&quot;12&quot; cy=&quot;16.5&quot; r=&quot;1.4&quot; fill=&quot;#000000&quot;/&gt;
       &lt;/svg&gt;&lt;/div&gt;
+&lt;button id=&quot;btn-export-pos&quot; style=&quot;position:fixed;left:10px;bottom:10px;z-index:9999;background:#1a2a3d;color:#9fd6ff;border:1px solid #3a6fd8;padding:8px 14px;border-radius:4px;font-family:Arial,sans-serif;font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);&quot;&gt;💾 Descargar TODAS las posiciones&lt;/button&gt;
+&lt;div id=&quot;header-title&quot;&gt;&lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 34.5 kV&lt;/span&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;div id=&quot;unscaled-overlay&quot; style=&quot;position:relative;flex:1;overflow:hidden;&quot;&gt;&lt;div id=&quot;header-widgets-345&quot; style=&quot;position:absolute;top:0;left:0;width:1918px;height:877px;transform-origin:0 0;z-index:50;pointer-events:none;&quot;&gt;
 &lt;div id=&quot;channel-status&quot; style=&quot;position:absolute;left:3px;top:52px;z-index:150;pointer-events:auto;cursor:default;user-select:none;
   background:transparent;border:none;width:auto;&quot;&gt;
   &lt;!-- Header sin borde exterior --&gt;
@@ -8835,6 +8835,8 @@ window.SCALE_345 = 1;
   &lt;/div&gt;
 
   &lt;!-- CF --&gt;
+  &lt;div class=&quot;static-ref serv-text&quot; id=&quot;txt-b1-345&quot; style=&quot;left:1307px;top:600px;font-family:Arial,sans-serif;font-size:9px;font-weight:700;color:#ffffff;letter-spacing:.08em;&quot;&gt;B1&lt;/div&gt;
+  &lt;div class=&quot;static-ref serv-text&quot; id=&quot;txt-36kv-345&quot; style=&quot;left:1340px;top:600px;font-family:Arial,sans-serif;font-size:9px;font-weight:700;color:#ffffff;letter-spacing:.08em;&quot;&gt;36 kV&lt;/div&gt;
   &lt;div class=&quot;static-ref serv-text&quot; id=&quot;txt-f1&quot; style=&quot;left:1307px;top:562px;font-size:7px;font-weight:700;&quot;&gt;F&lt;/div&gt;
   &lt;div class=&quot;static-ref serv-text&quot; id=&quot;txt-f2&quot; style=&quot;left:1340px;top:562px;font-size:7px;font-weight:700;&quot;&gt;F&lt;/div&gt;
 
@@ -8968,6 +8970,18 @@ function _guardar345(){
   var tp=document.getElementById(&#x27;ref-tp-1&#x27;);
   if(tp&amp;&amp;(tp.style.left||tp.style.top)) posE[&#x27;tp:ref-tp-1&#x27;]={left:tp.style.left,top:tp.style.top};
   try{ localStorage.setItem(_LS345_ELEM,JSON.stringify(posE)); }catch(e){}
+  /* IMPORTANTE: cuando esta página vive dentro de un &lt;iframe srcdoc&gt;
+     (como en operador.html/monitor.html), su localStorage se pierde al
+     recargar la página completa — es una limitación de los iframes
+     srcdoc, que no tienen una dirección propia y pueden perder su
+     almacenamiento al recrearse. Para que la calibración sí sobreviva
+     recargas reales, también se manda una copia a la página padre
+     (que si tiene un origen persistente) para que la guarde ella. */
+  try{
+    if(window.parent &amp;&amp; window.parent !== window){
+      window.parent.postMessage({type:&#x27;guardar-calib-345&#x27;, lineas:posL, elementos:posE}, &#x27;*&#x27;);
+    }
+  }catch(e){}
 }
 
 function _cargar345(){
@@ -9004,6 +9018,52 @@ function _cargar345(){
     }
   }catch(e){}
 }
+
+/* Aplica una calibración recibida de la página padre (mismo formato que
+   guarda _guardar345), sobreescribiendo lo que haya cargado del propio
+   localStorage del iframe (que puede estar desactualizado/vacío). */
+function _aplicarCalib345Recibida(lineas, elementos){
+  try{
+    if(lineas){
+      Object.keys(lineas).forEach(function(id){
+        var el=document.getElementById(id); if(!el) return;
+        var p=lineas[id];
+        if(p.left)   el.style.left=p.left;
+        if(p.top)    el.style.top=p.top;
+        if(p.width)  el.style.width=p.width;
+        if(p.height) el.style.height=p.height;
+      });
+    }
+    if(elementos){
+      document.querySelectorAll(&#x27;.elem,.ctl-wrap,.static-ref,.acom-wrap,.node-label&#x27;).forEach(function(el){
+        var k=(el.classList.contains(&#x27;ctl-wrap&#x27;)?&#x27;ctl:&#x27;:(el.classList.contains(&#x27;static-ref&#x27;)?&#x27;sref:&#x27;:&#x27;elem:&#x27;))+(el.dataset.target||el.id||&#x27;&#x27;);
+        if(elementos[k]){
+          if(elementos[k].left) el.style.left=elementos[k].left;
+          if(elementos[k].top)  el.style.top =elementos[k].top;
+        }
+      });
+      var tp=document.getElementById(&#x27;ref-tp-1&#x27;);
+      if(tp&amp;&amp;elementos[&#x27;tp:ref-tp-1&#x27;]){
+        if(elementos[&#x27;tp:ref-tp-1&#x27;].left) tp.style.left=elementos[&#x27;tp:ref-tp-1&#x27;].left;
+        if(elementos[&#x27;tp:ref-tp-1&#x27;].top)  tp.style.top =elementos[&#x27;tp:ref-tp-1&#x27;].top;
+      }
+    }
+  }catch(e){}
+}
+
+/* Al cargar dentro de un iframe, pedirle a la página padre la última
+   calibración guardada (por si el localStorage propio del iframe se
+   perdió al recargar) y aplicarla en cuanto responda. */
+try{
+  if(window.parent &amp;&amp; window.parent !== window){
+    window.addEventListener(&#x27;message&#x27;, function(e){
+      if(e.data &amp;&amp; e.data.type === &#x27;respuesta-calib-345&#x27;){
+        _aplicarCalib345Recibida(e.data.lineas, e.data.elementos);
+      }
+    });
+    window.parent.postMessage({type:&#x27;pedir-calib-345&#x27;}, &#x27;*&#x27;);
+  }
+}catch(e){}
 
 function _initDrag345(){
   document.querySelectorAll(&#x27;.lv345,.lh345&#x27;).forEach(function(line){
@@ -9065,41 +9125,28 @@ function _initDrag345(){
 
 function _initExportImport345(){
   var btnExp=document.getElementById(&#x27;btn-export-pos&#x27;);
-  var btnImp=document.getElementById(&#x27;btn-import-pos&#x27;);
-  var inpImp=document.getElementById(&#x27;input-import-pos&#x27;);
   if(btnExp) btnExp.addEventListener(&#x27;click&#x27;,function(){
-    var pos={};
+    /* Exporta TODO en un solo JSON: líneas + símbolos/controles/textos +
+       el transformador — el mismo formato que usa _guardar345(), para
+       que se pueda mandar tal cual y hornear las posiciones en el HTML. */
+    var posL={};
     document.querySelectorAll(&#x27;.lv345,.lh345&#x27;).forEach(function(el){
-      pos[el.id]={left:el.style.left,top:el.style.top,
-                  width:el.style.width,height:el.style.height};
+      posL[el.id]={left:el.style.left,top:el.style.top,
+                   width:el.style.width,height:el.style.height};
     });
+    var posE={};
+    document.querySelectorAll(&#x27;.elem,.ctl-wrap,.static-ref,.acom-wrap,.node-label&#x27;).forEach(function(el){
+      var k=(el.classList.contains(&#x27;ctl-wrap&#x27;)?&#x27;ctl:&#x27;:(el.classList.contains(&#x27;static-ref&#x27;)?&#x27;sref:&#x27;:&#x27;elem:&#x27;))+(el.dataset.target||el.id||&#x27;&#x27;);
+      if(k &amp;&amp; (el.style.left||el.style.top))
+        posE[k]={left:el.style.left,top:el.style.top};
+    });
+    var tp=document.getElementById(&#x27;ref-tp-1&#x27;);
+    if(tp&amp;&amp;(tp.style.left||tp.style.top)) posE[&#x27;tp:ref-tp-1&#x27;]={left:tp.style.left,top:tp.style.top};
+    var todo={lineas:posL, elementos:posE};
     var a=document.createElement(&#x27;a&#x27;);
-    a.href=URL.createObjectURL(new Blob([JSON.stringify(pos,null,2)],{type:&#x27;application/json&#x27;}));
-    a.download=&#x27;enerpyme_345kv_pos.json&#x27;; a.click();
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(todo,null,2)],{type:&#x27;application/json&#x27;}));
+    a.download=&#x27;enerpyme_345kv_TODAS_LAS_POSICIONES.json&#x27;; a.click();
   });
-  if(btnImp&amp;&amp;inpImp){
-    btnImp.addEventListener(&#x27;click&#x27;,function(){ inpImp.click(); });
-    inpImp.addEventListener(&#x27;change&#x27;,function(){
-      var f=this.files[0]; if(!f) return;
-      var r=new FileReader();
-      r.onload=function(e){
-        try{
-          var pos=JSON.parse(e.target.result);
-          Object.keys(pos).forEach(function(id){
-            var el=document.getElementById(id); if(!el) return;
-            var p=pos[id];
-            if(p.left)   el.style.left=p.left;
-            if(p.top)    el.style.top=p.top;
-            if(p.width)  el.style.width=p.width;
-            if(p.height) el.style.height=p.height;
-          });
-          _guardar345();
-        }catch(ex){ alert(&#x27;JSON inválido&#x27;); }
-      };
-      r.readAsText(f);
-      this.value=&#x27;&#x27;;
-    });
-  }
 }
 
 document.addEventListener(&#x27;DOMContentLoaded&#x27;,function(){
@@ -13030,6 +13077,28 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
   _sincronizarControl();
 
   window.addEventListener('message', function(e){
+    if(e.data.type === 'guardar-calib-345'){
+      /* Guarda la calibracion de 34.5kV en el localStorage de ESTA
+         pagina (que si tiene un origen persistente), porque el
+         localStorage del iframe srcdoc se pierde al recargar. */
+      try{
+        localStorage.setItem('op345_calib_relay', JSON.stringify({
+          lineas: e.data.lineas, elementos: e.data.elementos
+        }));
+      }catch(err){}
+      return;
+    }
+    if(e.data.type === 'pedir-calib-345'){
+      try{
+        var raw = localStorage.getItem('op345_calib_relay');
+        var datos = raw ? JSON.parse(raw) : {lineas:null, elementos:null};
+        if(e.source) e.source.postMessage({
+          type:'respuesta-calib-345', lineas: datos.lineas, elementos: datos.elementos
+        }, '*');
+      }catch(err){}
+      return;
+    }
+
     if(!e.data) return;
     if(e.data.type === 'ammper-jump-to-page'){
       var target = e.data.page;
