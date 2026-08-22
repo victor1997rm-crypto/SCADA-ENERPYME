@@ -3145,15 +3145,12 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
   // nada — se sigue viendo exactamente igual, sin franjas.
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    if(ww &lt; BREAKPOINT_ESCRITORIO){
-      // Celular: &quot;cover&quot; — llena todo el ancho y alto disponibles,
-      // sin franjas negras (igual que el mímico general), permitiendo
-      // arrastrar con el dedo para ver las partes que no quepan.
-      return Math.max(ww/refW, wh/refH);
-    }
-    // Escritorio: &quot;contener&quot; completo — se ajusta automáticamente a la
-    // pantalla sin recortar nada y sin necesidad de arrastrar.
-    return Math.min(ww/refW, wh/refH);
+    // &quot;Cover&quot; completo SIEMPRE (celular Y escritorio): decisión final del
+    // usuario — prioriza cero espacio vacío arriba/abajo, aceptando un
+    // recorte lateral leve (los paneles ENR/CHANNEL STATUS quedan un poco
+    // más chicos / parcialmente fuera de vista) en vez de dejar franjas
+    // negras que se ven poco profesionales.
+    return Math.max(ww/refW, wh/refH);
   }
 
   function recalcularEscalaYLimites(){
@@ -6850,15 +6847,12 @@ window.addEventListener(&#x27;message&#x27;, function(e){
   // el pellizco de zoom con los dedos (sin recentrar).
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    if(ww &lt; BREAKPOINT_ESCRITORIO){
-      // Celular: &quot;cover&quot; — llena todo el ancho y alto disponibles,
-      // sin franjas negras (igual que el mímico general), permitiendo
-      // arrastrar con el dedo para ver las partes que no quepan.
-      return Math.max(ww/refW, wh/refH);
-    }
-    // Escritorio: &quot;contener&quot; completo — se ajusta automáticamente a la
-    // pantalla sin recortar nada y sin necesidad de arrastrar.
-    return Math.min(ww/refW, wh/refH);
+    // &quot;Cover&quot; completo SIEMPRE (celular Y escritorio): decisión final del
+    // usuario — prioriza cero espacio vacío arriba/abajo, aceptando un
+    // recorte lateral leve (los paneles ENR/CHANNEL STATUS quedan un poco
+    // más chicos / parcialmente fuera de vista) en vez de dejar franjas
+    // negras que se ven poco profesionales.
+    return Math.max(ww/refW, wh/refH);
   }
 
   function recalcularEscalaYLimites(){
@@ -7907,15 +7901,10 @@ window.SCALE_345 = 1;
   var panMinX = 0, panMaxX = 0, panMinY = 0, panMaxY = 0;
 
   function escalaConLimiteDeRecorte(ww, wh){
-    if(ww &lt; BREAKPOINT_ESCRITORIO){
-      // Celular: &quot;cover&quot; — llena todo el ancho y alto disponibles,
-      // sin franjas negras (igual que el mímico general), permitiendo
-      // arrastrar con el dedo para ver las partes que no quepan.
-      return Math.max(ww/REF_W, wh/REF_H);
-    }
-    // Escritorio: &quot;contener&quot; completo — se ajusta automáticamente a la
-    // pantalla sin recortar nada y sin necesidad de arrastrar.
-    return Math.min(ww/REF_W, wh/REF_H);
+    // &quot;Cover&quot; completo SIEMPRE (celular Y escritorio): decisión final del
+    // usuario — prioriza cero espacio vacío arriba/abajo, aceptando un
+    // recorte lateral leve, igual que 400kV/115kV.
+    return Math.max(ww/REF_W, wh/REF_H);
   }
 
   function aplicarPosicion(){
@@ -7985,9 +7974,8 @@ window.SCALE_345 = 1;
         var availW = overlay.clientWidth;
         var availH = overlay.clientHeight;
         if(availW &lt;= 0 || availH &lt;= 0) return;
-        hwEscala = (availW &lt; BREAKPOINT_ESCRITORIO)
-          ? Math.max(availW/HW_REF_W, availH/HW_REF_H)  // celular: cover, igual que 400kV
-          : Math.min(availW/HW_REF_W, availH/HW_REF_H); // escritorio: contain
+        // &quot;Cover&quot; completo SIEMPRE, igual que 400kV/115kV (decisión final).
+        hwEscala = Math.max(availW/HW_REF_W, availH/HW_REF_H);
         aplicarPosicion();
       }
       if(typeof ResizeObserver !== &#x27;undefined&#x27;){
@@ -11161,10 +11149,9 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
   // el usuario está mirando).
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    if(ww &lt; BREAKPOINT_ESCRITORIO){
-      return Math.max(ww/refW, wh/refH); // celular: cover completo, sin franjas negras
-    }
-    return Math.min(ww/refW, wh/refH); // escritorio: contener completo, sin recortar nada
+    // &quot;Cover&quot; completo SIEMPRE (celular Y escritorio): decisión final del
+    // usuario — cero espacio vacío, aceptando recorte lateral leve.
+    return Math.max(ww/refW, wh/refH);
   }
 
   function recalcularEscalaYLimites(){
@@ -12650,14 +12637,10 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
        y se aplica encima la MISMA fórmula y referencia (1918x877) que
        usan 400kV/115kV/34.5kV, para que se vea EXACTAMENTE del mismo
        tamaño en cualquier pantalla, sin depender del zoom del diagrama. */
-    var HW_REF_W = 1918, HW_REF_H = 877, HW_BREAKPOINT = 900;
+    var HW_REF_W = 1918, HW_REF_H = 877;
     var availW = workspace.clientWidth, availH = workspace.clientHeight;
-    var escalaIndependiente;
-    if(availW &lt; HW_BREAKPOINT){
-      escalaIndependiente = Math.max(availW/HW_REF_W, availH/HW_REF_H);
-    } else {
-      escalaIndependiente = Math.min(availW/HW_REF_W, availH/HW_REF_H);
-    }
+    // &quot;Cover&quot; completo SIEMPRE, igual que 400kV/115kV/34.5kV (decisión final).
+    var escalaIndependiente = Math.max(availW/HW_REF_W, availH/HW_REF_H);
     var mimicoScaleSeguro = mimicoScale || 1;
     csWidget.style.transform = &#x27;scale(&#x27; + ((escalaIndependiente * csScale) / mimicoScaleSeguro) + &#x27;)&#x27;;
   }
@@ -12718,9 +12701,14 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
   //            (referencia 1918x877), para que se vea del mismo tamaño
   //            sin importar el zoom del mímico. ----------
   const headerClock = document.getElementById(&#x27;header-clock&#x27;);
-  const hcCanvasRef = document.getElementById(&#x27;canvasWrap&#x27;);
+  const hcCanvasRef = workspace; // usar el área visible real, NO canvasWrap
+                                  // (que tiene su propio desplazamiento por
+                                  // el modo &quot;cover&quot;), para que el reloj quede
+                                  // exactamente en la misma posición relativa
+                                  // que en 400kV/115kV/34.5kV.
   if(headerClock &amp;&amp; hcCanvasRef){
-    const hcFracX = 0.87, hcFracY = 0.005; // posición fija: arriba a la derecha
+    const hcFracX = 0.845, hcFracY = 0.006; // posición fija: arriba a la derecha,
+                                             // igual que en las otras 3 secciones
     const HC_REF_W = 1918, HC_REF_H = 877, HC_BREAKPOINT = 900;
 
     function hcEscalaIndependiente(){
