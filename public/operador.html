@@ -8122,6 +8122,12 @@ window.SCALE_345 = 1;
         if(_calib345 &amp;&amp; e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(
           &#x27;.cq-handle,#cuadro-punteado,.lv345,.lh345,.h345c,.elem,.ctl-wrap,.static-ref,.acom-wrap,.node-label,#ref-tp-1&#x27;
         )) return;
+        // Evita que el navegador procese el toque como gesto nativo
+        // (zoom de página, &quot;bounce&quot; de scroll, etc.) a mitad de un
+        // pellizco — en pantallas táctiles reales esto puede pisar
+        // nuestros cálculos si el navegador alcanza a interpretar el
+        // gesto por su cuenta antes de que termine.
+        e.preventDefault();
         // Límites de pan siempre frescos para la escala/zoom actual —
         // evita que un arrastre use límites desactualizados justo
         // después de haber hecho zoom con la rueda del mouse.
@@ -8186,6 +8192,7 @@ window.SCALE_345 = 1;
       }
 
       function onUp(e){
+        e.preventDefault();
         delete activos[e.pointerId];
         var idx = ordenIds.indexOf(e.pointerId);
         if(idx !== -1) ordenIds.splice(idx, 1);
@@ -8245,7 +8252,7 @@ window.SCALE_345 = 1;
     &lt;/div&gt;
   &lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;&lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 34.5 kV&lt;/span&gt;&lt;/div&gt;
-&lt;/div&gt;&lt;div id=&quot;unscaled-overlay&quot; style=&quot;position:relative;flex:1;overflow:hidden;&quot;&gt;&lt;div id=&quot;header-widgets-345&quot; style=&quot;position:absolute;top:0;left:0;width:1918px;height:877px;transform-origin:0 0;z-index:50;pointer-events:none;&quot;&gt;
+&lt;/div&gt;&lt;div id=&quot;unscaled-overlay&quot; style=&quot;position:relative;flex:1;overflow:hidden;touch-action:none;&quot;&gt;&lt;div id=&quot;header-widgets-345&quot; style=&quot;position:absolute;top:0;left:0;width:1918px;height:877px;transform-origin:0 0;z-index:50;pointer-events:none;&quot;&gt;
 &lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;right:14px;top:8px;z-index:200;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
 &lt;div id=&quot;mimico-btn&quot; onclick=&quot;toggleCalib345()&quot; style=&quot;pointer-events:none;&quot;&gt;MIMICO&lt;/div&gt;
 &lt;div id=&quot;alarmas-btn&quot;&gt;ALARMAS &lt;svg width=&quot;16&quot; height=&quot;15&quot; viewBox=&quot;0 0 24 22&quot; style=&quot;vertical-align:middle;margin-left:2px;&quot;&gt;
@@ -9547,6 +9554,19 @@ function ejecutarManiobra345(){
   if(antes !== despues){
     libRegistrar(el.id, antes, despues);
     reproducirSonido(el.id, despues===&#x27;ABIERTO&#x27;);
+    // Enlace con la pantalla externa de Alarmas (/scada_alarmas.html),
+    // igual patrón que usa 400kV: se manda al shell (operador.html), que
+    // reenvía el evento a la ventana de alarmas real.
+    var bahia345 = (typeof BAHIAS345 !== &#x27;undefined&#x27;) ? BAHIAS345[el.id] : null;
+    var tagReal345 = bahia345 ? bahia345.tag_barra : el.id.toUpperCase();
+    if(window.parent &amp;&amp; window.parent !== window){
+      window.parent.postMessage({
+        type:&#x27;ammper-alarma&#x27;, pagina:&#x27;345kV&#x27;, id:el.id, code:el.id.toUpperCase(),
+        tagReal: tagReal345, estado: despues,
+        dispositivo: bahia345 ? bahia345.tipoEquipo : null,
+        antes:antes, despues:despues
+      }, &#x27;*&#x27;);
+    }
   }
   cerrarModal();
 }
