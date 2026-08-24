@@ -7981,7 +7981,7 @@ window.SCALE_345 = 1;
   }
 
   var zoom = 1; // factor de zoom manual (pellizco con dos dedos)
-  var ZOOM_MIN = 1, ZOOM_MAX = 4;
+  var ZOOM_MIN = 1, ZOOM_MAX = 2; // bajado de 4 a 2: a partir de ahí el texto (6-9px) se ve borroso al escalar
 
   function ajustarEscalaPagina345(){
     if(!overlay) overlay = document.getElementById(&#x27;unscaled-overlay&#x27;);
@@ -10907,7 +10907,7 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
 &lt;/div&gt;
 &lt;div id=&quot;workspace&quot;&gt;
   &lt;div id=&quot;canvasWrap&quot;&gt;
-    &lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;right:14px;top:8px;z-index:200;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
+    &lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;right:14px;top:8px;z-index:200;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;transform-origin:top right;&quot;&gt;&lt;/div&gt;
     &lt;img id=&quot;bgImg&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
     &lt;svg id=&quot;overlay&quot; viewBox=&quot;0 9 935 427&quot; preserveAspectRatio=&quot;none&quot;&gt;&lt;/svg&gt;
 &lt;div id=&quot;cs-widget&quot; style=&quot;left:91.23%; top:8%; right:auto; width:260px;&quot;&gt;
@@ -12811,20 +12811,22 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
   }catch(e){ /* localStorage no disponible */ }
 
   let csScale = 1; // factor manual adicional (solo modo calibración, botones +/-)
+  const clockEl = document.getElementById(&#x27;header-clock&#x27;);
   function csAplicarTransform(){
-    /* CHANNEL STATUS debe comportarse EXACTAMENTE como en 400kV: ahí no
-       existe una escala &quot;independiente&quot; — el widget es hijo del mismo
-       elemento que se escala con el diagrama, así que crece y se
-       encoge JUNTO con el zoom del mímico (pellizco/scroll). Aquí se
-       descuenta SOLO el ajuste automático propio de GENERAL (935x427,
-       distinto al de 400kV) para que el tamaño INICIAL coincida con
-       400kV, pero el factor de zoom manual del usuario SÍ se deja
-       pasar, para que crezca junto con el resto al hacer zoom. */
+    /* CHANNEL STATUS y el reloj deben VERSE del mismo tamaño y posición
+       que en 400kV/115kV/34.5kV. El código del reloj (font-size, right,
+       top) es idéntico en las 4 secciones — pero el lienzo de GENERAL es
+       mucho más chico (935x427 vs 1918x877/1950x1180), así que sin esta
+       compensación su escala natural (mimicoScale) lo agranda de más.
+       Esta línea descuenta SOLO ese ajuste automático propio de GENERAL,
+       dejando pasar el zoom manual del usuario igual que en las otras 3. */
     var HW_REF_W = 1918, HW_REF_H = 877;
     var availW = workspace.clientWidth, availH = workspace.clientHeight;
     var escalaBase400 = Math.min(availW/HW_REF_W, availH/HW_REF_H);
     var ajusteAutoGeneral = escalaConLimiteDeRecorte(availW, availH, CANVAS_W, CANVAS_H) || 1;
-    csWidget.style.transform = &#x27;scale(&#x27; + ((escalaBase400/ajusteAutoGeneral) * csScale) + &#x27;)&#x27;;
+    var factorCompensado = (escalaBase400/ajusteAutoGeneral) * csScale;
+    csWidget.style.transform = &#x27;scale(&#x27; + factorCompensado + &#x27;)&#x27;;
+    if(clockEl) clockEl.style.transform = &#x27;scale(&#x27; + factorCompensado + &#x27;)&#x27;;
   }
   csAplicarTransform();
 
