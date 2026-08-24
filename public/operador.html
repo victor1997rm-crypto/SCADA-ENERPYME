@@ -645,8 +645,8 @@ try{
   &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id=&quot;header-clock&quot; style=&quot;position:fixed;right:14px;top:56px;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
 &lt;div class=&quot;scada-wrap&quot; id=&quot;wrap&quot;&gt;
+&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;right:14px;top:8px;z-index:150;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
   &lt;img class=&quot;scada-img&quot; id=&quot;bgimg&quot; alt=&quot;Subestación 400kV&quot;/&gt;
   &lt;!-- RELOJ — arrastrable, debajo de ENERPYME --&gt;
   
@@ -3147,12 +3147,12 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
   // nada — se sigue viendo exactamente igual, sin franjas.
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    // &quot;Cover&quot; completo SIEMPRE (celular Y escritorio): decisión final del
-    // usuario — prioriza cero espacio vacío arriba/abajo, aceptando un
-    // recorte lateral leve (los paneles ENR/CHANNEL STATUS quedan un poco
-    // más chicos / parcialmente fuera de vista) en vez de dejar franjas
-    // negras que se ven poco profesionales.
-    return Math.max(ww/refW, wh/refH);
+    // &quot;Contain&quot; completo SIEMPRE (celular Y escritorio): decisión final del
+    // usuario — prioriza que NUNCA se recorte ni se oculte ningún elemento
+    // del diagrama (estándar para HMI/SCADA), aceptando franjas vacías
+    // arriba/abajo o a los lados en pantallas de proporción distinta a la
+    // del lienzo, en vez de recortar contenido potencialmente crítico.
+    return Math.min(ww/refW, wh/refH);
   }
 
   function recalcularEscalaYLimites(){
@@ -3189,7 +3189,7 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
     // wrapTop se mide desde el borde superior de #scada-outer, así que
     // hay que sumarle headerH para que el lienzo quede DEBAJO del header.
     baseLeft = (availW - scaledW) / 2;
-    baseTop  = headerH; // pegado al header, sin espacio de sobra arriba/abajo
+    baseTop  = headerH + (availH - scaledH) / 2; // centrado en el espacio disponible bajo el header (deja franja pareja arriba/abajo en modo &quot;contain&quot;)
     wrapLeft = baseLeft;
     wrapTop  = baseTop;
     aplicarPosicion();
@@ -3351,6 +3351,32 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
     outer.addEventListener(&#x27;pointermove&#x27;, onMove);
     outer.addEventListener(&#x27;pointerup&#x27;, onUp);
     outer.addEventListener(&#x27;pointercancel&#x27;, onUp);
+
+    /* Zoom con la rueda del mouse/trackpad, anclado al punto bajo el
+       cursor (igual criterio que el pellizco con dos dedos): el punto
+       del diagrama que está bajo el mouse se mantiene fijo en pantalla
+       mientras se hace zoom, en vez de recentrar todo. */
+    function onWheel(e){
+      if(header &amp;&amp; header.contains(e.target)) return;
+      e.preventDefault();
+      var headerH = ultimoHeaderH;
+      var rect = outer.getBoundingClientRect();
+      var mx = e.clientX - rect.left;
+      var my = e.clientY - rect.top;
+      var factor = e.deltaY &lt; 0 ? 1.12 : (1/1.12);
+      var nuevoZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom * factor));
+      if(nuevoZoom === zoom) return;
+      var fx = (mx - wrapLeft) / escalaActual;
+      var fy = (my - wrapTop) / escalaActual;
+      zoom = nuevoZoom;
+      recalcularEscalaYLimites();
+      wrapLeft = mx - fx * escalaActual;
+      wrapTop  = my - fy * escalaActual;
+      wrapLeft = Math.min(panMaxX, Math.max(panMinX, wrapLeft));
+      wrapTop  = Math.min(headerH + panMaxY, Math.max(headerH + panMinY, wrapTop));
+      solicitarRenderPosicion();
+    }
+    outer.addEventListener(&#x27;wheel&#x27;, onWheel, {passive:false});
   })();
 })();
 &lt;/script&gt;
@@ -4140,8 +4166,8 @@ try{
   &lt;/div&gt;
 &lt;/div&gt;
 
-&lt;div id=&quot;header-clock&quot; style=&quot;position:fixed;right:14px;top:56px;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
 &lt;div class=&quot;scada-wrap&quot; id=&quot;wrap&quot;&gt;
+&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;right:14px;top:8px;z-index:150;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
   &lt;div class=&quot;blackout-overlay-400&quot; id=&quot;blackout-overlay-400&quot;&gt;
     &lt;div class=&quot;bo-box&quot;&gt;⚠ SIN SUMINISTRO
       &lt;span class=&quot;bo-sub&quot;&gt;Falla aguas arriba en S.E. ENERPYME 400 kV&lt;/span&gt;
@@ -6851,12 +6877,12 @@ window.addEventListener(&#x27;message&#x27;, function(e){
   // el pellizco de zoom con los dedos (sin recentrar).
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    // &quot;Cover&quot; completo SIEMPRE (celular Y escritorio): decisión final del
-    // usuario — prioriza cero espacio vacío arriba/abajo, aceptando un
-    // recorte lateral leve (los paneles ENR/CHANNEL STATUS quedan un poco
-    // más chicos / parcialmente fuera de vista) en vez de dejar franjas
-    // negras que se ven poco profesionales.
-    return Math.max(ww/refW, wh/refH);
+    // &quot;Contain&quot; completo SIEMPRE (celular Y escritorio): decisión final del
+    // usuario — prioriza que NUNCA se recorte ni se oculte ningún elemento
+    // del diagrama (estándar para HMI/SCADA), aceptando franjas vacías
+    // arriba/abajo o a los lados en pantallas de proporción distinta a la
+    // del lienzo, en vez de recortar contenido potencialmente crítico.
+    return Math.min(ww/refW, wh/refH);
   }
 
   function recalcularEscalaYLimites(){
@@ -6893,7 +6919,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     // wrapTop se mide desde el borde superior de #scada-outer, así que
     // hay que sumarle headerH para que el lienzo quede DEBAJO del header.
     baseLeft = (availW - scaledW) / 2;
-    baseTop  = headerH; // pegado al header, sin espacio de sobra arriba/abajo
+    baseTop  = headerH + (availH - scaledH) / 2; // centrado en el espacio disponible bajo el header (deja franja pareja arriba/abajo en modo &quot;contain&quot;)
     wrapLeft = baseLeft;
     wrapTop  = baseTop;
     aplicarPosicion();
@@ -7051,6 +7077,30 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     outer.addEventListener(&#x27;pointermove&#x27;, onMove);
     outer.addEventListener(&#x27;pointerup&#x27;, onUp);
     outer.addEventListener(&#x27;pointercancel&#x27;, onUp);
+
+    /* Zoom con la rueda del mouse/trackpad, anclado al punto bajo el
+       cursor (igual criterio que el pellizco con dos dedos). */
+    function onWheel(e){
+      if(header &amp;&amp; header.contains(e.target)) return;
+      e.preventDefault();
+      var headerH = ultimoHeaderH;
+      var rect = outer.getBoundingClientRect();
+      var mx = e.clientX - rect.left;
+      var my = e.clientY - rect.top;
+      var factor = e.deltaY &lt; 0 ? 1.12 : (1/1.12);
+      var nuevoZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom * factor));
+      if(nuevoZoom === zoom) return;
+      var fx = (mx - wrapLeft) / escalaActual;
+      var fy = (my - wrapTop) / escalaActual;
+      zoom = nuevoZoom;
+      recalcularEscalaYLimites();
+      wrapLeft = mx - fx * escalaActual;
+      wrapTop  = my - fy * escalaActual;
+      wrapLeft = Math.min(panMaxX, Math.max(panMinX, wrapLeft));
+      wrapTop  = Math.min(headerH + panMaxY, Math.max(headerH + panMinY, wrapTop));
+      solicitarRenderPosicion();
+    }
+    outer.addEventListener(&#x27;wheel&#x27;, onWheel, {passive:false});
   })();
 })();
 &lt;/script&gt;
@@ -7879,10 +7929,10 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
 &lt;/style&gt;
 &lt;script&gt;
 /* ── ESCALADO DE PÁGINA COMPLETA (34.5 kV) ──
-   Mismo esquema que 400kV/115kV: en escritorio &quot;contiene&quot; el lienzo
-   completo (sin recortar nada); en celular usa &quot;cover&quot; (llena todo el
-   ancho y alto disponibles, sin franjas negras), permitiendo arrastrar
-   con el dedo/mouse las partes que queden fuera de la pantalla. */
+   Mismo esquema que 400kV/115kV/GENERAL: &quot;contain&quot; completo SIEMPRE
+   (celular Y escritorio) — el lienzo nunca se recorta, aceptando franjas
+   vacías arriba/abajo o a los lados si la proporción de pantalla no
+   coincide con la del diagrama. */
 window.SCALE_345 = 1;
 (function(){
   var REF_W = 1950, REF_H = 1180;
@@ -7898,10 +7948,9 @@ window.SCALE_345 = 1;
   var panMinX = 0, panMaxX = 0, panMinY = 0, panMaxY = 0;
 
   function escalaConLimiteDeRecorte(ww, wh){
-    // &quot;Cover&quot; completo SIEMPRE (celular Y escritorio): decisión final del
-    // usuario — prioriza cero espacio vacío arriba/abajo, aceptando un
-    // recorte lateral leve, igual que 400kV/115kV.
-    return Math.max(ww/REF_W, wh/REF_H);
+    // &quot;Contain&quot; completo SIEMPRE (celular Y escritorio): decisión final del
+    // usuario — nunca se recorta contenido, igual que 400kV/115kV/GENERAL.
+    return Math.min(ww/REF_W, wh/REF_H);
   }
 
   function aplicarPosicion(){
@@ -7940,16 +7989,28 @@ window.SCALE_345 = 1;
     if(availW &lt;= 0 || availH &lt;= 0) return;
     escalaActual = escalaConLimiteDeRecorte(availW, availH) * zoom;
     window.SCALE_345 = escalaActual;
+    recalcularLimitesPan345();
+    stageLeft = Math.min(panMaxX, Math.max(panMinX, baseLeft));
+    stageTop  = Math.min(panMaxY, Math.max(panMinY, baseTop));
+    aplicarPosicion();
+  }
+
+  /* Recalcula SOLO los límites de pan (panMinX/Y, panMaxX/Y) y el
+     centrado base (baseLeft/Top) para la escala actual, sin tocar la
+     posición vigente — se llama antes de cada gesto de arrastre/zoom
+     para garantizar que los límites nunca queden desactualizados
+     (p.ej. justo después de hacer zoom con la rueda del mouse). */
+  function recalcularLimitesPan345(){
+    if(!overlay) return;
+    var availW = overlay.clientWidth, availH = overlay.clientHeight;
+    if(availW &lt;= 0 || availH &lt;= 0) return;
     var scaledW = REF_W * escalaActual, scaledH = REF_H * escalaActual;
     panMinX = Math.min(0, availW - scaledW);
     panMaxX = 0;
     panMinY = Math.min(0, availH - scaledH);
     panMaxY = 0;
     baseLeft = (availW - scaledW) / 2;
-    baseTop  = 0; // pegado al header, sin espacio de sobra arriba/abajo (igual que 400kV/115kV)
-    stageLeft = Math.min(panMaxX, Math.max(panMinX, baseLeft));
-    stageTop  = Math.min(panMaxY, Math.max(panMinY, baseTop));
-    aplicarPosicion();
+    baseTop  = (availH - scaledH) / 2;
   }
 
   function inicializar(){
@@ -7971,8 +8032,10 @@ window.SCALE_345 = 1;
         var availW = overlay.clientWidth;
         var availH = overlay.clientHeight;
         if(availW &lt;= 0 || availH &lt;= 0) return;
-        // &quot;Cover&quot; completo SIEMPRE, igual que 400kV/115kV (decisión final).
-        hwEscala = Math.max(availW/HW_REF_W, availH/HW_REF_H);
+        // &quot;Contain&quot; completo SIEMPRE, igual que 400kV/115kV (decisión final) —
+        // debe coincidir con la misma fórmula para que el widget se vea
+        // exactamente del mismo tamaño que en 400kV/115kV.
+        hwEscala = Math.min(availW/HW_REF_W, availH/HW_REF_H);
         aplicarPosicion();
       }
       if(typeof ResizeObserver !== &#x27;undefined&#x27;){
@@ -8056,6 +8119,10 @@ window.SCALE_345 = 1;
         if(_calib345 &amp;&amp; e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(
           &#x27;.cq-handle,#cuadro-punteado,.lv345,.lh345,.h345c,.elem,.ctl-wrap,.static-ref,.acom-wrap,.node-label,#ref-tp-1&#x27;
         )) return;
+        // Límites de pan siempre frescos para la escala/zoom actual —
+        // evita que un arrastre use límites desactualizados justo
+        // después de haber hecho zoom con la rueda del mouse.
+        recalcularLimitesPan345();
         activos[e.pointerId] = {x: e.clientX, y: e.clientY};
         if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
         try{ overlay.setPointerCapture(e.pointerId); }catch(err){}
@@ -8138,6 +8205,32 @@ window.SCALE_345 = 1;
       overlay.addEventListener(&#x27;pointermove&#x27;, onMove);
       overlay.addEventListener(&#x27;pointerup&#x27;, onUp);
       overlay.addEventListener(&#x27;pointercancel&#x27;, onUp);
+
+      /* Zoom con la rueda del mouse/trackpad, anclado al punto bajo el
+         cursor (igual criterio que el pellizco con dos dedos). */
+      function onWheel(e){
+        var header = document.getElementById(&#x27;scada-header&#x27;);
+        if(header &amp;&amp; header.contains(e.target)) return;
+        e.preventDefault();
+        var r = overlay.getBoundingClientRect();
+        var mx = e.clientX - r.left, my = e.clientY - r.top;
+        var factor = e.deltaY &lt; 0 ? 1.12 : (1/1.12);
+        var nuevoZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom * factor));
+        if(nuevoZoom === zoom) return;
+        var fx = (mx - stageLeft) / escalaActual;
+        var fy = (my - stageTop) / escalaActual;
+        zoom = nuevoZoom;
+        var availW = overlay.clientWidth, availH = overlay.clientHeight;
+        escalaActual = escalaConLimiteDeRecorte(availW, availH) * zoom;
+        window.SCALE_345 = escalaActual;
+        recalcularLimitesPan345();
+        stageLeft = mx - fx * escalaActual;
+        stageTop  = my - fy * escalaActual;
+        stageLeft = Math.min(panMaxX, Math.max(panMinX, stageLeft));
+        stageTop  = Math.min(panMaxY, Math.max(panMinY, stageTop));
+        solicitarRenderPosicion();
+      }
+      overlay.addEventListener(&#x27;wheel&#x27;, onWheel, {passive:false});
     })();
   }
 
@@ -8175,7 +8268,8 @@ window.SCALE_345 = 1;
     &lt;/div&gt;
   &lt;/div&gt;
   &lt;div id=&quot;header-title&quot;&gt;&lt;span id=&quot;title-text&quot;&gt;S.E. ENERPYME 34.5 kV&lt;/span&gt;&lt;/div&gt;
-&lt;/div&gt;&lt;div id=&quot;unscaled-overlay&quot; style=&quot;position:relative;flex:1;overflow:hidden;&quot;&gt;&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;right:14px;top:8px;z-index:200;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;&lt;div id=&quot;header-widgets-345&quot; style=&quot;position:absolute;top:0;left:0;width:1918px;height:877px;transform-origin:0 0;z-index:50;pointer-events:none;&quot;&gt;
+&lt;/div&gt;&lt;div id=&quot;unscaled-overlay&quot; style=&quot;position:relative;flex:1;overflow:hidden;&quot;&gt;&lt;div id=&quot;header-widgets-345&quot; style=&quot;position:absolute;top:0;left:0;width:1918px;height:877px;transform-origin:0 0;z-index:50;pointer-events:none;&quot;&gt;
+&lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;right:14px;top:8px;z-index:200;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
 &lt;div id=&quot;mimico-btn&quot; onclick=&quot;toggleCalib345()&quot; style=&quot;pointer-events:none;&quot;&gt;MIMICO&lt;/div&gt;
 &lt;div id=&quot;alarmas-btn&quot;&gt;ALARMAS &lt;svg width=&quot;16&quot; height=&quot;15&quot; viewBox=&quot;0 0 24 22&quot; style=&quot;vertical-align:middle;margin-left:2px;&quot;&gt;
         &lt;path d=&quot;M12 1 L23 20 L1 20 Z&quot; fill=&quot;#ffdd00&quot; stroke=&quot;#000000&quot; stroke-width=&quot;1.5&quot; stroke-linejoin=&quot;round&quot;/&gt;
@@ -8430,7 +8524,7 @@ window.SCALE_345 = 1;
   &lt;div class=&quot;static-ref&quot; id=&quot;fint4-down&quot; style=&quot;left:947px;top:576px;&quot;&gt;&lt;svg width=&quot;12&quot; height=&quot;9&quot; viewBox=&quot;0 0 12 9&quot; fill=&quot;none&quot;&gt;&lt;polyline points=&quot;1,1 6,8 11,1&quot; stroke=&quot;#ffffff&quot; stroke-width=&quot;1.5&quot; stroke-linejoin=&quot;round&quot; stroke-linecap=&quot;round&quot;/&gt;&lt;/svg&gt;&lt;/div&gt;
 
   &lt;!-- Cuadrado punteado verde redimensionable --&gt;
-  &lt;div class=&quot;cuadro345&quot; id=&quot;cuadro-punteado&quot; style=&quot;left:700px;top:600px;width:480px;height:320px;&quot;&gt;
+  &lt;div class=&quot;cuadro345&quot; id=&quot;cuadro-punteado&quot; style=&quot;left:633.317px;top:505.291px;width:610.75px;height:479.899px;pointer-events:none;&quot;&gt;
     &lt;div class=&quot;cq-handle cq-mv&quot;&gt;&lt;/div&gt;
     &lt;div class=&quot;cq-handle cq-nw&quot;&gt;&lt;/div&gt;
     &lt;div class=&quot;cq-handle cq-ne&quot;&gt;&lt;/div&gt;
@@ -10808,10 +10902,9 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     &lt;span id=&quot;title-text&quot;&gt;RED ELÉCTRICA ENERPYME&lt;/span&gt;
   &lt;/div&gt;
 &lt;/div&gt;
-&lt;div id=&quot;header-clock&quot; style=&quot;position:fixed;right:14px;top:56px;z-index:20;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
-
 &lt;div id=&quot;workspace&quot;&gt;
   &lt;div id=&quot;canvasWrap&quot;&gt;
+    &lt;div id=&quot;header-clock&quot; style=&quot;position:absolute;right:14px;top:8px;z-index:150;font-family:&#x27;Courier New&#x27;,monospace;font-size:clamp(10px,1.3vw,18px);font-weight:700;color:#00ee44;letter-spacing:.22em;white-space:nowrap;text-shadow:0 0 10px rgba(0,238,68,.7);text-align:right;width:max-content;pointer-events:none;&quot;&gt;&lt;/div&gt;
     &lt;img id=&quot;bgImg&quot; src=&quot;&quot; alt=&quot;&quot;&gt;
     &lt;svg id=&quot;overlay&quot; viewBox=&quot;0 9 935 427&quot; preserveAspectRatio=&quot;none&quot;&gt;&lt;/svg&gt;
 &lt;div id=&quot;cs-widget&quot; style=&quot;left:91.23%; top:8%; right:auto; width:260px;&quot;&gt;
@@ -10965,7 +11058,7 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
       &lt;b&gt;Modo Nodo:&lt;/b&gt; clic en el fondo agrega un nodo.&lt;br&gt;
       &lt;b&gt;Modo Línea:&lt;/b&gt; clic en un nodo, luego clic en otro, crea una conexión.&lt;br&gt;
       &lt;b&gt;Seleccionar/Mover:&lt;/b&gt; arrastra nodos; clic en nodo o línea para ver propiedades.&lt;br&gt;
-      Zoom con la rueda del mouse (Ctrl+scroll) o los botones +/−.
+      Zoom con la rueda del mouse/trackpad o los botones +/−.
     &lt;/div&gt;
   &lt;/div&gt;
 &lt;/div&gt;
@@ -11211,9 +11304,9 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
   // el usuario está mirando).
   var BREAKPOINT_ESCRITORIO = 900; // px de ancho — por debajo se trata como celular
   function escalaConLimiteDeRecorte(ww, wh, refW, refH){
-    // &quot;Cover&quot; completo SIEMPRE (celular Y escritorio): decisión final del
-    // usuario — cero espacio vacío, aceptando recorte lateral leve.
-    return Math.max(ww/refW, wh/refH);
+    // &quot;Contain&quot; completo SIEMPRE (celular Y escritorio): decisión final del
+    // usuario — nunca se recorta contenido, aceptando franjas vacías.
+    return Math.min(ww/refW, wh/refH);
   }
 
   function recalcularEscalaYLimites(){
@@ -11516,6 +11609,28 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     workspace.addEventListener(&#x27;pointermove&#x27;, onMove);
     workspace.addEventListener(&#x27;pointerup&#x27;, onUp);
     workspace.addEventListener(&#x27;pointercancel&#x27;, onUp);
+
+    /* Zoom con la rueda del mouse/trackpad, anclado al punto bajo el
+       cursor (igual criterio que el pellizco con dos dedos). */
+    function onWheel(e){
+      e.preventDefault();
+      const rect = workspace.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const factor = e.deltaY &lt; 0 ? 1.12 : (1/1.12);
+      const nuevoZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom * factor));
+      if(nuevoZoom === zoom) return;
+      const fx = (mx - canvasLeft) / mimicoScale;
+      const fy = (my - canvasTop) / mimicoScale;
+      zoom = nuevoZoom;
+      recalcularEscalaYLimites();
+      canvasLeft = mx - fx * mimicoScale;
+      canvasTop  = my - fy * mimicoScale;
+      canvasLeft = Math.min(panMaxX, Math.max(panMinX, canvasLeft));
+      canvasTop  = Math.min(panMaxY, Math.max(panMinY, canvasTop));
+      solicitarRenderCanvas();
+    }
+    workspace.addEventListener(&#x27;wheel&#x27;, onWheel, {passive:false});
   })();
 
   // ---------- coordinate helpers ----------
@@ -12759,9 +12874,12 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     csAplicarTransform();
   });
 
-  // ---------- reloj: EXACTAMENTE igual que 400kV — posición y tamaño
-  //            fijos por CSS (sin fórmulas ni JS), sin moverse con el
-  //            zoom/pan del mímico. ----------
+  // ---------- reloj: vive DENTRO de #canvasWrap (igual que cs-widget),
+  //            así que se mueve y escala en sincronía con el diagrama al
+  //            hacer pan/zoom — decisión final del usuario en las 4
+  //            secciones. Solo actualiza su texto aquí; la posición y
+  //            escala las hereda automáticamente del transform de
+  //            #canvasWrap (ver aplicarPosicionCanvas). ----------
   function setBgVisible(visible){
     bgImg.style.display = visible ? &#x27;block&#x27; : &#x27;none&#x27;;
     toggleBgBtn.textContent = visible ? &#x27;🖼️ Ocultar fondo&#x27; : &#x27;🖼️ Mostrar fondo&#x27;;
