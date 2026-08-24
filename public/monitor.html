@@ -7981,7 +7981,7 @@ window.SCALE_345 = 1;
   }
 
   var zoom = 1; // factor de zoom manual (pellizco con dos dedos)
-  var ZOOM_MIN = 1, ZOOM_MAX = 2; // bajado de 4 a 2: a partir de ahí el texto (6-9px) se ve borroso al escalar
+  var ZOOM_MIN = 1, ZOOM_MAX = 4;
 
   function ajustarEscalaPagina345(){
     if(!overlay) overlay = document.getElementById(&#x27;unscaled-overlay&#x27;);
@@ -8208,32 +8208,6 @@ window.SCALE_345 = 1;
       overlay.addEventListener(&#x27;pointermove&#x27;, onMove);
       overlay.addEventListener(&#x27;pointerup&#x27;, onUp);
       overlay.addEventListener(&#x27;pointercancel&#x27;, onUp);
-
-      /* Zoom con la rueda del mouse/trackpad, anclado al punto bajo el
-         cursor (igual criterio que el pellizco con dos dedos). */
-      function onWheel(e){
-        var header = document.getElementById(&#x27;scada-header&#x27;);
-        if(header &amp;&amp; header.contains(e.target)) return;
-        e.preventDefault();
-        var r = overlay.getBoundingClientRect();
-        var mx = e.clientX - r.left, my = e.clientY - r.top;
-        var factor = e.deltaY &lt; 0 ? 1.12 : (1/1.12);
-        var nuevoZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoom * factor));
-        if(nuevoZoom === zoom) return;
-        var fx = (mx - stageLeft) / escalaActual;
-        var fy = (my - stageTop) / escalaActual;
-        zoom = nuevoZoom;
-        var availW = overlay.clientWidth, availH = overlay.clientHeight;
-        escalaActual = escalaConLimiteDeRecorte(availW, availH) * zoom;
-        window.SCALE_345 = escalaActual;
-        recalcularLimitesPan345();
-        stageLeft = mx - fx * escalaActual;
-        stageTop  = my - fy * escalaActual;
-        stageLeft = Math.min(panMaxX, Math.max(panMinX, stageLeft));
-        stageTop  = Math.min(panMaxY, Math.max(panMinY, stageTop));
-        solicitarRenderPosicion();
-      }
-      overlay.addEventListener(&#x27;wheel&#x27;, onWheel, {passive:false});
     })();
   }
 
