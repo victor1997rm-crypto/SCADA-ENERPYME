@@ -8212,9 +8212,9 @@ window.SCALE_345 = 1;
 
       overlay.style.touchAction = &#x27;none&#x27;;
       overlay.addEventListener(&#x27;pointerdown&#x27;, onDown);
-      overlay.addEventListener(&#x27;pointermove&#x27;, onMove);
-      overlay.addEventListener(&#x27;pointerup&#x27;, onUp);
-      overlay.addEventListener(&#x27;pointercancel&#x27;, onUp);
+      document.addEventListener(&#x27;pointermove&#x27;, onMove);
+      document.addEventListener(&#x27;pointerup&#x27;, onUp);
+      document.addEventListener(&#x27;pointercancel&#x27;, onUp);
     })();
   }
 
@@ -9517,7 +9517,6 @@ var equipoSeleccionado345 = null;
 
 function solicitarConfirmacion(elem){
   if(_calib345) return;
-  if(!libGrabando) return;
   if(!elem) return;
   equipoSeleccionado345 = elem;
   var cerrado = elem.classList.contains(&#x27;closed&#x27;), estado = cerrado ? &#x27;CERRADO&#x27; : &#x27;ABIERTO&#x27;;
