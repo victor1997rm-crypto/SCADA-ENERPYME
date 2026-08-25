@@ -42,12 +42,11 @@
   #scale-wrap{
     position:absolute;
     top:0;left:0;
-    width:1600px;height:1000px;
-    transform-origin:top left;
+    width:100%;height:100%;
   }
   .app{
     display:flex;flex-direction:column;
-    width:1600px;height:1000px;
+    width:100%;height:100%;
     background:var(--black);
     border:1px solid #000;
   }
@@ -131,14 +130,13 @@
     background:var(--panel);border-right:1px solid #000;
     display:flex;flex-direction:column;
     resize:horizontal;overflow:auto;
-    touch-action:none;
   }
   .treepanel h3{
     margin:0;padding:6px 8px 4px;font-size:12px;font-weight:700;
     color:var(--text-bright);
     border-bottom:1px solid #1a1a1a;
   }
-  .tree{padding:4px 0;flex:1;overflow:auto;touch-action:none;user-select:none;-webkit-user-select:none;}
+  .tree{padding:4px 0;flex:1;overflow:auto;user-select:none;-webkit-user-select:none;}
   .tnode{
     display:flex;align-items:center;gap:6px;
     padding:3px 4px;white-space:nowrap;cursor:default;color:var(--text);
@@ -177,7 +175,7 @@
     padding:5px 10px;font-weight:700;font-size:12.5px;color:var(--text-bright);
     border-bottom:1px solid #000;background:var(--panel);
   }
-  .grid-scroll{flex:1;overflow:auto;background:var(--black);touch-action:none;user-select:none;-webkit-user-select:none;}
+  .grid-scroll{flex:1;overflow:auto;background:var(--black);user-select:none;-webkit-user-select:none;}
   .grid-scroll ::selection{background:transparent;}
   table{border-collapse:collapse;width:100%;table-layout:fixed;}
   thead th{
@@ -603,174 +601,6 @@ setInterval(() => {
   window.pushAlarm(generarAlarmaRuido());
 }, 10000);
 
-/* ============================================================
-   AJUSTE AUTOMATICO AL TAMAÑO DE PANTALLA
-   ============================================================
-   El diseño esta construido a una resolucion base de 1600x1000.
-   Sin importar el tamaño real del monitor/ventana donde se abra
-   este archivo, se escala completo para LLENAR todo el espacio
-   disponible (sin dejar barras negras), recortando como máximo
-   un poco de margen si la proporción del monitor es distinta.
-============================================================ */
-(function(){
-  var BASE_W = 1600, BASE_H = 1000;
-  var wrap = document.getElementById('scale-wrap');
-  var contenedor = document.body;
-
-  var escalaActual = 1;
-  var zoom = 1; // factor de zoom manual (pellizco con dos dedos)
-  var wrapLeft = 0, wrapTop = 0;
-  var baseLeft = 0, baseTop = 0; // posición centrada "de reposo", sin arrastre
-  var panMinX = 0, panMaxX = 0, panMinY = 0, panMaxY = 0;
-
-  function aplicarPosicion(){
-    wrap.style.left = wrapLeft + 'px';
-    wrap.style.top  = wrapTop + 'px';
-    wrap.style.transform = 'scale(' + escalaActual + ')';
-  }
-
-  // Calcula escala y límites válidos para el zoom actual, SIN tocar la
-  // posición — se reutiliza al redimensionar (con recentrado) y durante
-  // el pellizco de zoom con los dedos (sin recentrar).
-  function recalcularEscalaYLimites(){
-    var vw = window.innerWidth;
-    var vh = window.innerHeight;
-    if(vw <= 0 || vh <= 0) return false;
-    // "Cover": llena toda la pantalla sin dejar espacio en negro.
-    var escala = Math.max(vw / BASE_W, vh / BASE_H) * zoom;
-    escalaActual = escala;
-    var scaledW = BASE_W * escala, scaledH = BASE_H * escala;
-    panMinX = Math.min(0, vw - scaledW);
-    panMaxX = 0;
-    panMinY = Math.min(0, vh - scaledH);
-    panMaxY = 0;
-    return true;
-  }
-
-  function ajustar(){
-    if(!recalcularEscalaYLimites()) return;
-    var vw = window.innerWidth, vh = window.innerHeight;
-    var scaledW = BASE_W * escalaActual, scaledH = BASE_H * escalaActual;
-    // Recentrar cada vez que cambia el tamaño (p.ej. al girar el celular).
-    baseLeft = (vw - scaledW) / 2;
-    baseTop  = (vh - scaledH) / 2;
-    wrapLeft = baseLeft;
-    wrapTop  = baseTop;
-    aplicarPosicion();
-  }
-
-  window.addEventListener('resize', ajustar);
-  window.addEventListener('load', ajustar);
-  ajustar();
-  setTimeout(ajustar, 50);
-  setTimeout(ajustar, 300);
-
-  // ---------- arrastrar la pantalla de alarmas con el dedo/mouse, y
-  //            hacer zoom con dos dedos (pellizco) — igual que en las
-  //            4 páginas del SCADA, para poder desplazarse en celular
-  //            cuando la pantalla no cabe completa. ----------
-  (function habilitarArrastreYZoom(){
-    var UMBRAL_PX = 6;
-    var ZOOM_MIN = 1, ZOOM_MAX = 4;
-    var activos = {}; var ordenIds = [];
-    var posible = false, arrastrando = false;
-    var startX = 0, startY = 0, startLeft = 0, startTop = 0;
-    var pellizcando = false, distInicial = 0, zoomInicial = 1, fxAncla = 0, fyAncla = 0;
-
-    function distanciaEntre(p1, p2){
-      var dx = p2.x - p1.x, dy = p2.y - p1.y;
-      return Math.sqrt(dx*dx + dy*dy);
-    }
-    function contarActivos(){ return ordenIds.length; }
-
-    function onDown(e){
-      // Un clic en la tabla de alarmas o en el panel del árbol NO debe
-      // activar el arrastre/zoom del fondo — de lo contrario
-      // setPointerCapture() secuestra el evento y la fila nunca recibe
-      // su clic completo (el mismo bug que tuvimos con las flechas del
-      // SCADA).
-      if(e.target.closest('.grid-scroll, .treepanel, .toolbar, .tabstrip')) return;
-      activos[e.pointerId] = {x: e.clientX, y: e.clientY};
-      if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
-      try{ contenedor.setPointerCapture(e.pointerId); }catch(err){}
-      if(contarActivos() === 2){
-        posible = false; arrastrando = false; pellizcando = true;
-        var p1 = activos[ordenIds[0]], p2 = activos[ordenIds[1]];
-        distInicial = distanciaEntre(p1, p2);
-        zoomInicial = zoom;
-        var midX0 = (p1.x + p2.x) / 2, midY0 = (p1.y + p2.y) / 2;
-        fxAncla = (midX0 - wrapLeft) / escalaActual;
-        fyAncla = (midY0 - wrapTop) / escalaActual;
-      } else if(contarActivos() === 1){
-        pellizcando = false;
-        posible = true; arrastrando = false;
-        startX = e.clientX; startY = e.clientY;
-        startLeft = wrapLeft; startTop = wrapTop;
-      }
-    }
-
-    function onMove(e){
-      if(!activos[e.pointerId]) return;
-      activos[e.pointerId] = {x: e.clientX, y: e.clientY};
-
-      if(pellizcando && contarActivos() >= 2){
-        var p1 = activos[ordenIds[0]], p2 = activos[ordenIds[1]];
-        var distActual = distanciaEntre(p1, p2);
-        var midX = (p1.x + p2.x) / 2;
-        var midY = (p1.y + p2.y) / 2;
-        if(distInicial > 0){
-          var factor = distActual / distInicial;
-          zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomInicial * factor));
-          recalcularEscalaYLimites();
-          wrapLeft = midX - fxAncla * escalaActual;
-          wrapTop  = midY - fyAncla * escalaActual;
-          wrapLeft = Math.min(panMaxX, Math.max(panMinX, wrapLeft));
-          wrapTop  = Math.min(panMaxY, Math.max(panMinY, wrapTop));
-          aplicarPosicion();
-        }
-        e.preventDefault();
-        return;
-      }
-
-      if(!posible) return;
-      var dx = e.clientX - startX;
-      var dy = e.clientY - startY;
-      if(!arrastrando){
-        if(Math.abs(dx) < UMBRAL_PX && Math.abs(dy) < UMBRAL_PX) return;
-        arrastrando = true;
-        contenedor.style.cursor = 'grabbing';
-      }
-      wrapLeft = Math.min(panMaxX, Math.max(panMinX, startLeft + dx));
-      wrapTop  = Math.min(panMaxY, Math.max(panMinY, startTop + dy));
-      aplicarPosicion();
-      e.preventDefault();
-    }
-
-    function onUp(e){
-      delete activos[e.pointerId];
-      var idx = ordenIds.indexOf(e.pointerId);
-      if(idx !== -1) ordenIds.splice(idx, 1);
-      if(contarActivos() < 2) pellizcando = false;
-      if(contarActivos() === 1){
-        var pt = activos[ordenIds[0]];
-        posible = true; arrastrando = false;
-        startX = pt.x; startY = pt.y;
-        startLeft = wrapLeft; startTop = wrapTop;
-      } else if(contarActivos() === 0){
-        posible = false; arrastrando = false;
-        contenedor.style.cursor = '';
-      }
-    }
-    contenedor.style.touchAction = 'none';
-    contenedor.addEventListener('pointerdown', onDown);
-    contenedor.addEventListener('pointermove', onMove);
-    contenedor.addEventListener('pointerup', onUp);
-    contenedor.addEventListener('pointercancel', onUp);
-    document.querySelectorAll('.grid-scroll, .treepanel, .toolbar, .tabstrip').forEach(function(el){
-      el.addEventListener('pointerdown', function(e){ e.stopPropagation(); });
-    });
-  })();
-})();
 </script>
 </body>
 </html>
