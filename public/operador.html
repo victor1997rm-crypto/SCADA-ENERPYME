@@ -8122,6 +8122,15 @@ window.SCALE_345 = 1;
         if(_calib345 &amp;&amp; e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(
           &#x27;.cq-handle,#cuadro-punteado,.lv345,.lh345,.h345c,.elem,.ctl-wrap,.static-ref,.acom-wrap,.node-label,#ref-tp-1&#x27;
         )) return;
+        /* Los equipos operables (CTL, interruptores, cuchillas) y el
+           modal de confirmación SIEMPRE quedan excluidos del pan general,
+           en calibración o no — de lo contrario, el preventDefault() de
+           abajo (necesario para el pellizco en pantallas táctiles) le
+           cancela el clic al CTL y el modal de abrir/cerrar nunca se
+           llega a abrir. */
+        if(e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(
+          &#x27;.ctl-wrap,.elem,.cmd-box,.modal-overlay,#confirmModal&#x27;
+        )) return;
         // Evita que el navegador procese el toque como gesto nativo
         // (zoom de página, &quot;bounce&quot; de scroll, etc.) a mitad de un
         // pellizco — en pantallas táctiles reales esto puede pisar
