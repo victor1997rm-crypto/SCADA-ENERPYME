@@ -33,6 +33,11 @@ export type ControlState = {
   // vio; si cambió, recarga sus 4 páginas. Sin este campo el operador
   // nunca se entera de que hubo un reset.
   resetTs?: number;
+  // true en cuanto el supervisor entra a /monitor con el código de
+  // sesión (accion:'conectar'). operador.html lo usa para quitar el
+  // aviso "ESPERANDO AL SUPERVISOR..." — sin este campo el aviso se
+  // queda fijo para siempre, aunque el supervisor ya esté conectado.
+  supervisorConectado?: boolean;
 };
 
 const SESSION_TTL_SECONDS = 60 * 60 * 12; // 12 horas
