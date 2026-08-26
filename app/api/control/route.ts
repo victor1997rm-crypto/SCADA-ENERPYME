@@ -20,6 +20,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Sesión no existe o expiró' }, { status: 404 });
   }
 
+  if (accion === 'conectar') {
+    const actual = await obtenerControl(code);
+    const control: ControlState = { ...actual, supervisorConectado: true };
+    await setControl(code, control);
+    return NextResponse.json({ control });
+  }
+
   if (accion === 'iniciar') {
     const control: ControlState = { estado: 'grabando', inicioTs: Date.now(), finTs: null };
     await setControl(code, control);
