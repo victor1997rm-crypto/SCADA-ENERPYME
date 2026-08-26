@@ -3384,42 +3384,22 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
 
 &lt;script&gt;
 /* ============================================================
-   MODO OPERADOR — inyectado para el monitoreo remoto en vivo.
-   - Oculta el panel ENTRENADOR (ahora lo controla el supervisor
-     desde /monitor).
-   - Cada maniobra real (clasList antes/despues distintos) se
-     manda a /api/maniobra con el código de sesión recibido del
-     shell superior por postMessage.
+   MODO MONITOR &#x2014; inyectado para reflejar en tiempo real las
+   maniobras del operador. Este iframe NUNCA reporta maniobras a
+   /api/maniobra (eso solo lo hace operador.html) &#x2014; unicamente
+   APLICA las que le manda el shell superior (monitor.html) por
+   postMessage tipo &#x27;aplicar-maniobra&#x27;, ejecutando el mismo
+   ejecutarDesdeModal(accion) que usaria un clic real, para heredar
+   gratis toda la logica de energizacion/alarmas/MIMICO que ya
+   tiene cada pagina. El CTL se mantiene bloqueado (libGrabando en
+   false) el resto del tiempo: el supervisor NO maniobra manualmente
+   desde aqui, solo observa.
    ============================================================ */
-window.__paginaNombre = &quot;400kV&quot;;
-window.__sessionCode = null;
-
-/* El CTL solo debe reaccionar cuando el SUPERVISOR dio INICIAR — el
-   shell superior (operador_extra_body) hace el polling a /api/control
-   y nos avisa el estado real por postMessage, ya que aquí adentro del
-   iframe no podemos ver el badge (vive en el documento padre). */
 function _setGrabando(v){
   try{ libGrabando = v; }catch(e){ window.libGrabando = v; }
 }
 _setGrabando(false);
 document.addEventListener(&#x27;DOMContentLoaded&#x27;, function(){ _setGrabando(false); });
-
-window.addEventListener(&#x27;message&#x27;, function(e){
-  if(e.data &amp;&amp; e.data.type === &#x27;session-code&#x27;){
-    window.__sessionCode = e.data.code;
-  }
-  if(e.data &amp;&amp; e.data.type === &#x27;control-estado&#x27;){
-    _setGrabando(e.data.estado === &#x27;grabando&#x27;);
-  }
-  if(e.data &amp;&amp; e.data.type === &#x27;reset-diagrama&#x27;){
-    /* El supervisor pidió RESET: recargar esta página regresa todos
-       los interruptores/cuchillas exactamente al estado de fábrica
-       que trae el HTML horneado, sin tener que enumerar a mano cada
-       elemento de cada una de las 3 páginas (que además tienen
-       ids distintos entre sí). */
-    location.reload();
-  }
-});
 
 document.addEventListener(&#x27;DOMContentLoaded&#x27;, function(){
   var panel = document.getElementById(&#x27;lib-panel&#x27;);
@@ -3427,69 +3407,27 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function(){
 });
 if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27;lib-panel&#x27;).style.display=&#x27;none&#x27;;
 
-(function(){
-  function buscarTag(elId){
-    /* Preferir la etiqueta corta visible en el diagrama (ej. &quot;A2010&quot;)
-       sobre el nombre interno de variable SIVOC (ej. &quot;POSICION_FASE_A_A2010&quot;),
-       que es más apto para alarmas que para un feed de monitoreo en vivo. */
-    var lbl = document.getElementById(&#x27;lbl-&#x27;+elId);
-    if(lbl &amp;&amp; lbl.textContent.trim()) return lbl.textContent.trim();
-    try{
-      if(typeof SIVOC_400!==&#x27;undefined&#x27; &amp;&amp; SIVOC_400[elId]) return SIVOC_400[elId].tag;
-    }catch(e){}
-    try{
-      if(typeof SIVOC_115!==&#x27;undefined&#x27; &amp;&amp; SIVOC_115[elId]) return SIVOC_115[elId].tag;
-    }catch(e){}
-    try{
-      if(typeof SIVOC_345!==&#x27;undefined&#x27; &amp;&amp; SIVOC_345[elId]) return SIVOC_345[elId].tag;
-    }catch(e){}
-    return elId;
+window.addEventListener(&#x27;message&#x27;, function(e){
+  if(!e.data) return;
+  if(e.data.type === &#x27;reset-diagrama&#x27;){
+    location.reload();
+    return;
   }
-
-  function _obtenerEquipoSel(){
-    if(typeof equipoSeleccionado !== &#x27;undefined&#x27; &amp;&amp; equipoSeleccionado) return equipoSeleccionado;
-    if(typeof equipoSeleccionado345 !== &#x27;undefined&#x27; &amp;&amp; equipoSeleccionado345) return equipoSeleccionado345;
-    return null;
+  if(e.data.type === &#x27;aplicar-maniobra&#x27;){
+    var el = document.getElementById(e.data.equipo);
+    if(!el) return;
+    if(typeof equipoSeleccionado !== &#x27;undefined&#x27;) equipoSeleccionado = el;
+    else if(typeof equipoSeleccionado345 !== &#x27;undefined&#x27;) equipoSeleccionado345 = el;
+    else return;
+    if(typeof ejecutarDesdeModal !== &#x27;function&#x27;) return;
+    /* Algunas paginas (115kV) revisan libGrabando DENTRO de
+       ejecutarDesdeModal &#x2014; lo destrabamos solo durante esta
+       llamada sincrona y lo regresamos a bloqueado enseguida. */
+    _setGrabando(true);
+    ejecutarDesdeModal(e.data.despues === &#x27;ABIERTO&#x27; ? &#x27;abrir&#x27; : &#x27;cerrar&#x27;);
+    _setGrabando(false);
   }
-
-  /* Cada página (400/115/34.5kV) nombra distinto la función que hace
-     el toggle real (ejecutarManiobra, o todo inline, o ejecutarManiobra345
-     con su propia variable equipoSeleccionado345). La única función con
-     el MISMO nombre en las 3 páginas es ejecutarDesdeModal(accion), que
-     es la que llama el botón del modal — así que envolvemos esa,
-     comparando el estado antes/después en vez de depender de la
-     función interna específica de cada página. */
-  function envolverEjecutarDesdeModal(){
-    if(typeof ejecutarDesdeModal !== &#x27;function&#x27;) return false;
-    var _orig = ejecutarDesdeModal;
-    ejecutarDesdeModal = function(accion){
-      var el = _obtenerEquipoSel();
-      var antes = el ? (el.classList.contains(&#x27;closed&#x27;) ? &#x27;CERRADO&#x27; : &#x27;ABIERTO&#x27;) : null;
-      _orig.apply(this, arguments);
-      if(el &amp;&amp; window.__sessionCode){
-        var despues = el.classList.contains(&#x27;closed&#x27;) ? &#x27;CERRADO&#x27; : &#x27;ABIERTO&#x27;;
-        if(antes !== despues){
-          fetch(&#x27;/api/maniobra&#x27;, {
-            method: &#x27;POST&#x27;,
-            headers: {&#x27;Content-Type&#x27;:&#x27;application/json&#x27;},
-            body: JSON.stringify({
-              code: window.__sessionCode,
-              pagina: window.__paginaNombre,
-              equipo: el.id,
-              tag: buscarTag(el.id),
-              antes: antes,
-              despues: despues
-            })
-          }).catch(function(){});
-        }
-      }
-    };
-    return true;
-  }
-  if(!envolverEjecutarDesdeModal()){
-    document.addEventListener(&#x27;DOMContentLoaded&#x27;, envolverEjecutarDesdeModal);
-  }
-})();
+});
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -7108,42 +7046,22 @@ window.addEventListener(&#x27;message&#x27;, function(e){
 
 &lt;script&gt;
 /* ============================================================
-   MODO OPERADOR — inyectado para el monitoreo remoto en vivo.
-   - Oculta el panel ENTRENADOR (ahora lo controla el supervisor
-     desde /monitor).
-   - Cada maniobra real (clasList antes/despues distintos) se
-     manda a /api/maniobra con el código de sesión recibido del
-     shell superior por postMessage.
+   MODO MONITOR &#x2014; inyectado para reflejar en tiempo real las
+   maniobras del operador. Este iframe NUNCA reporta maniobras a
+   /api/maniobra (eso solo lo hace operador.html) &#x2014; unicamente
+   APLICA las que le manda el shell superior (monitor.html) por
+   postMessage tipo &#x27;aplicar-maniobra&#x27;, ejecutando el mismo
+   ejecutarDesdeModal(accion) que usaria un clic real, para heredar
+   gratis toda la logica de energizacion/alarmas/MIMICO que ya
+   tiene cada pagina. El CTL se mantiene bloqueado (libGrabando en
+   false) el resto del tiempo: el supervisor NO maniobra manualmente
+   desde aqui, solo observa.
    ============================================================ */
-window.__paginaNombre = &quot;115kV&quot;;
-window.__sessionCode = null;
-
-/* El CTL solo debe reaccionar cuando el SUPERVISOR dio INICIAR — el
-   shell superior (operador_extra_body) hace el polling a /api/control
-   y nos avisa el estado real por postMessage, ya que aquí adentro del
-   iframe no podemos ver el badge (vive en el documento padre). */
 function _setGrabando(v){
   try{ libGrabando = v; }catch(e){ window.libGrabando = v; }
 }
 _setGrabando(false);
 document.addEventListener(&#x27;DOMContentLoaded&#x27;, function(){ _setGrabando(false); });
-
-window.addEventListener(&#x27;message&#x27;, function(e){
-  if(e.data &amp;&amp; e.data.type === &#x27;session-code&#x27;){
-    window.__sessionCode = e.data.code;
-  }
-  if(e.data &amp;&amp; e.data.type === &#x27;control-estado&#x27;){
-    _setGrabando(e.data.estado === &#x27;grabando&#x27;);
-  }
-  if(e.data &amp;&amp; e.data.type === &#x27;reset-diagrama&#x27;){
-    /* El supervisor pidió RESET: recargar esta página regresa todos
-       los interruptores/cuchillas exactamente al estado de fábrica
-       que trae el HTML horneado, sin tener que enumerar a mano cada
-       elemento de cada una de las 3 páginas (que además tienen
-       ids distintos entre sí). */
-    location.reload();
-  }
-});
 
 document.addEventListener(&#x27;DOMContentLoaded&#x27;, function(){
   var panel = document.getElementById(&#x27;lib-panel&#x27;);
@@ -7151,69 +7069,27 @@ document.addEventListener(&#x27;DOMContentLoaded&#x27;, function(){
 });
 if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27;lib-panel&#x27;).style.display=&#x27;none&#x27;;
 
-(function(){
-  function buscarTag(elId){
-    /* Preferir la etiqueta corta visible en el diagrama (ej. &quot;A2010&quot;)
-       sobre el nombre interno de variable SIVOC (ej. &quot;POSICION_FASE_A_A2010&quot;),
-       que es más apto para alarmas que para un feed de monitoreo en vivo. */
-    var lbl = document.getElementById(&#x27;lbl-&#x27;+elId);
-    if(lbl &amp;&amp; lbl.textContent.trim()) return lbl.textContent.trim();
-    try{
-      if(typeof SIVOC_400!==&#x27;undefined&#x27; &amp;&amp; SIVOC_400[elId]) return SIVOC_400[elId].tag;
-    }catch(e){}
-    try{
-      if(typeof SIVOC_115!==&#x27;undefined&#x27; &amp;&amp; SIVOC_115[elId]) return SIVOC_115[elId].tag;
-    }catch(e){}
-    try{
-      if(typeof SIVOC_345!==&#x27;undefined&#x27; &amp;&amp; SIVOC_345[elId]) return SIVOC_345[elId].tag;
-    }catch(e){}
-    return elId;
+window.addEventListener(&#x27;message&#x27;, function(e){
+  if(!e.data) return;
+  if(e.data.type === &#x27;reset-diagrama&#x27;){
+    location.reload();
+    return;
   }
-
-  function _obtenerEquipoSel(){
-    if(typeof equipoSeleccionado !== &#x27;undefined&#x27; &amp;&amp; equipoSeleccionado) return equipoSeleccionado;
-    if(typeof equipoSeleccionado345 !== &#x27;undefined&#x27; &amp;&amp; equipoSeleccionado345) return equipoSeleccionado345;
-    return null;
+  if(e.data.type === &#x27;aplicar-maniobra&#x27;){
+    var el = document.getElementById(e.data.equipo);
+    if(!el) return;
+    if(typeof equipoSeleccionado !== &#x27;undefined&#x27;) equipoSeleccionado = el;
+    else if(typeof equipoSeleccionado345 !== &#x27;undefined&#x27;) equipoSeleccionado345 = el;
+    else return;
+    if(typeof ejecutarDesdeModal !== &#x27;function&#x27;) return;
+    /* Algunas paginas (115kV) revisan libGrabando DENTRO de
+       ejecutarDesdeModal &#x2014; lo destrabamos solo durante esta
+       llamada sincrona y lo regresamos a bloqueado enseguida. */
+    _setGrabando(true);
+    ejecutarDesdeModal(e.data.despues === &#x27;ABIERTO&#x27; ? &#x27;abrir&#x27; : &#x27;cerrar&#x27;);
+    _setGrabando(false);
   }
-
-  /* Cada página (400/115/34.5kV) nombra distinto la función que hace
-     el toggle real (ejecutarManiobra, o todo inline, o ejecutarManiobra345
-     con su propia variable equipoSeleccionado345). La única función con
-     el MISMO nombre en las 3 páginas es ejecutarDesdeModal(accion), que
-     es la que llama el botón del modal — así que envolvemos esa,
-     comparando el estado antes/después en vez de depender de la
-     función interna específica de cada página. */
-  function envolverEjecutarDesdeModal(){
-    if(typeof ejecutarDesdeModal !== &#x27;function&#x27;) return false;
-    var _orig = ejecutarDesdeModal;
-    ejecutarDesdeModal = function(accion){
-      var el = _obtenerEquipoSel();
-      var antes = el ? (el.classList.contains(&#x27;closed&#x27;) ? &#x27;CERRADO&#x27; : &#x27;ABIERTO&#x27;) : null;
-      _orig.apply(this, arguments);
-      if(el &amp;&amp; window.__sessionCode){
-        var despues = el.classList.contains(&#x27;closed&#x27;) ? &#x27;CERRADO&#x27; : &#x27;ABIERTO&#x27;;
-        if(antes !== despues){
-          fetch(&#x27;/api/maniobra&#x27;, {
-            method: &#x27;POST&#x27;,
-            headers: {&#x27;Content-Type&#x27;:&#x27;application/json&#x27;},
-            body: JSON.stringify({
-              code: window.__sessionCode,
-              pagina: window.__paginaNombre,
-              equipo: el.id,
-              tag: buscarTag(el.id),
-              antes: antes,
-              despues: despues
-            })
-          }).catch(function(){});
-        }
-      }
-    };
-    return true;
-  }
-  if(!envolverEjecutarDesdeModal()){
-    document.addEventListener(&#x27;DOMContentLoaded&#x27;, envolverEjecutarDesdeModal);
-  }
-})();
+});
 &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;
@@ -10433,7 +10309,54 @@ function reproducirSonido(elemId, abre){
   document.addEventListener(&#x27;DOMContentLoaded&#x27;, ajustarAnchoChannelStatus);
 })();
 &lt;/script&gt;
-&lt;/div&gt;&lt;/div&gt;&lt;!-- /unscaled-overlay --&gt;&lt;!-- /page-stage-345 --&gt;&lt;/body&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;script&gt;
+/* ============================================================
+   MODO MONITOR &#x2014; inyectado para reflejar en tiempo real las
+   maniobras del operador. Este iframe NUNCA reporta maniobras a
+   /api/maniobra (eso solo lo hace operador.html) &#x2014; unicamente
+   APLICA las que le manda el shell superior (monitor.html) por
+   postMessage tipo &#x27;aplicar-maniobra&#x27;, ejecutando el mismo
+   ejecutarDesdeModal(accion) que usaria un clic real, para heredar
+   gratis toda la logica de energizacion/alarmas/MIMICO que ya
+   tiene cada pagina. El CTL se mantiene bloqueado (libGrabando en
+   false) el resto del tiempo: el supervisor NO maniobra manualmente
+   desde aqui, solo observa.
+   ============================================================ */
+function _setGrabando(v){
+  try{ libGrabando = v; }catch(e){ window.libGrabando = v; }
+}
+_setGrabando(false);
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function(){ _setGrabando(false); });
+
+document.addEventListener(&#x27;DOMContentLoaded&#x27;, function(){
+  var panel = document.getElementById(&#x27;lib-panel&#x27;);
+  if(panel) panel.style.display = &#x27;none&#x27;;
+});
+if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27;lib-panel&#x27;).style.display=&#x27;none&#x27;;
+
+window.addEventListener(&#x27;message&#x27;, function(e){
+  if(!e.data) return;
+  if(e.data.type === &#x27;reset-diagrama&#x27;){
+    location.reload();
+    return;
+  }
+  if(e.data.type === &#x27;aplicar-maniobra&#x27;){
+    var el = document.getElementById(e.data.equipo);
+    if(!el) return;
+    if(typeof equipoSeleccionado !== &#x27;undefined&#x27;) equipoSeleccionado = el;
+    else if(typeof equipoSeleccionado345 !== &#x27;undefined&#x27;) equipoSeleccionado345 = el;
+    else return;
+    if(typeof ejecutarDesdeModal !== &#x27;function&#x27;) return;
+    /* Algunas paginas (115kV) revisan libGrabando DENTRO de
+       ejecutarDesdeModal &#x2014; lo destrabamos solo durante esta
+       llamada sincrona y lo regresamos a bloqueado enseguida. */
+    _setGrabando(true);
+    ejecutarDesdeModal(e.data.despues === &#x27;ABIERTO&#x27; ? &#x27;abrir&#x27; : &#x27;cerrar&#x27;);
+    _setGrabando(false);
+  }
+});
+&lt;/script&gt;
+&lt;!-- /unscaled-overlay --&gt;&lt;!-- /page-stage-345 --&gt;&lt;/body&gt;
 &lt;/html&gt;"></iframe>
 <iframe id="page-GENERAL" class="scada-page" data-page="GENERAL" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;display:block;" srcdoc="&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;es&quot;&gt;
