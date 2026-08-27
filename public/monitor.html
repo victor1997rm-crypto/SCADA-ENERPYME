@@ -3275,7 +3275,7 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
          completo, que se ve como si 'brincara' y dejara un espacio.
          Mismo criterio que ya usa 34.5kV. */
       if(e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(
-        &#x27;.ctl-wrap,.elem,.cmd-box,.modal-overlay,#confirmModal&#x27;
+        &#x27;.ctl-wrap,.elem,.cmd-box,.modal-overlay,#confirmModal,#drma38k0&#x27;
       )) return;
       activos[e.pointerId] = {x: e.clientX, y: e.clientY};
       if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
@@ -7092,7 +7092,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
          y el CTL deja de recibir el evento con normalidad. Mismo orden
          que ya usa 34.5kV. */
       if(e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(
-        &#x27;.ctl-wrap,.elem,.cmd-box,.modal-overlay,#confirmModal&#x27;
+        &#x27;.ctl-wrap,.elem,.cmd-box,.modal-overlay,#confirmModal,#drma38k0&#x27;
       )) return;
       activos[e.pointerId] = {x: e.clientX, y: e.clientY};
       if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
@@ -8181,7 +8181,7 @@ window.SCALE_345 = 1;
            cancela el clic al CTL y el modal de abrir/cerrar nunca se
            llega a abrir. */
         if(e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(
-          &#x27;.ctl-wrap,.elem,.cmd-box,.modal-overlay,#confirmModal&#x27;
+          &#x27;.ctl-wrap,.elem,.cmd-box,.modal-overlay,#confirmModal,#drma38k0&#x27;
         )) return;
         // Evita que el navegador procese el toque como gesto nativo
         // (zoom de página, &quot;bounce&quot; de scroll, etc.) a mitad de un
