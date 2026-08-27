@@ -3267,6 +3267,15 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
       // setPointerCapture() en &quot;outer&quot; secuestra el evento y el botón
       // nunca recibe su clic completo, dejando las flechas &quot;atoradas&quot;.
       if(header &amp;&amp; header.contains(e.target)) return;
+      /* Los equipos operables (CTL, interruptores, cuchillas) y el
+         modal de confirmacion SIEMPRE quedan excluidos del pan general
+         -- de lo contrario, un clic con un poco de movimiento accidental
+         del mouse (muy comun) arma sin querer un arrastre del diagrama
+         completo, que se ve como si 'brincara' y dejara un espacio.
+         Mismo criterio que ya usa 34.5kV. */
+      if(e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(
+        &#x27;.ctl-wrap,.elem,.cmd-box,.modal-overlay,#confirmModal&#x27;
+      )) return;
       activos[e.pointerId] = {x: e.clientX, y: e.clientY};
       if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
       try{ outer.setPointerCapture(e.pointerId); }catch(err){}
@@ -7060,6 +7069,15 @@ window.addEventListener(&#x27;message&#x27;, function(e){
       activos[e.pointerId] = {x: e.clientX, y: e.clientY};
       if(ordenIds.indexOf(e.pointerId) === -1) ordenIds.push(e.pointerId);
       try{ outer.setPointerCapture(e.pointerId); }catch(err){}
+      /* Los equipos operables (CTL, interruptores, cuchillas) y el
+         modal de confirmacion SIEMPRE quedan excluidos del pan general
+         -- de lo contrario, un clic con un poco de movimiento accidental
+         del mouse (muy comun) arma sin querer un arrastre del diagrama
+         completo, que se ve como si 'brincara' y dejara un espacio.
+         Mismo criterio que ya usa 34.5kV. */
+      if(e.target &amp;&amp; e.target.closest &amp;&amp; e.target.closest(
+        &#x27;.ctl-wrap,.elem,.cmd-box,.modal-overlay,#confirmModal&#x27;
+      )) return;
       if(contarActivos() === 2){
         posible = false;
         arrastrando = false;
