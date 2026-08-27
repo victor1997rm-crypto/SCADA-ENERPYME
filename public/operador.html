@@ -6354,7 +6354,21 @@ function actualizarVisualMimico115(){
         &#x27;72T10&#x27;: cerrado115(&#x27;int3&#x27;),
         &#x27;77I10&#x27;: cerrado115(&#x27;int4&#x27;),
         BUS1_ENR: st.bus1,
-        BUS2_ENR: st.bus2
+        BUS2_ENR: st.bus2,
+        /* Cuchillas de 72T10 -- las 4 tienen simbolo propio en el
+           MIMICO, etiquetado solo con el ultimo digito de su tag
+           real (72T12-&gt;&#x27;2&#x27;, 72T11-&gt;&#x27;1&#x27;, 72T18-&gt;&#x27;8&#x27;, 72T19-&gt;&#x27;9&#x27;). */
+        &#x27;72T12&#x27;: cerrado115(&#x27;cu4a&#x27;),
+        &#x27;72T11&#x27;: cerrado115(&#x27;cu5b&#x27;),
+        &#x27;72T18&#x27;: cerrado115(&#x27;cu6a&#x27;),
+        &#x27;72T19&#x27;: cerrado115(&#x27;cu6b&#x27;),
+        /* Cuchilla de 77I10 con simbolo identificado en el MIMICO. */
+        &#x27;77I11&#x27;: cerrado115(&#x27;cu6c&#x27;),
+        /* Cuchillas de 73C10/73C20 con simbolo identificado. */
+        &#x27;73C11&#x27;: cerrado115(&#x27;cu2a&#x27;),
+        &#x27;73C22&#x27;: cerrado115(&#x27;cu3b&#x27;),
+        &#x27;73C29&#x27;: cerrado115(&#x27;cu1a&#x27;),
+        &#x27;73C21&#x27;: cerrado115(&#x27;cu3a&#x27;)
       }
     }, &#x27;*&#x27;);
   }
@@ -11671,7 +11685,18 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     &#x27;73C20&#x27;: [&#x27;INT18&#x27;,&#x27;INT25&#x27;],
     &#x27;73C10&#x27;: [&#x27;INT17&#x27;,&#x27;INT19&#x27;],
     &#x27;72T10&#x27;: [&#x27;INT15&#x27;],
-    &#x27;77I10&#x27;: [&#x27;INT16&#x27;]
+    &#x27;77I10&#x27;: [&#x27;INT16&#x27;],
+    /* Cuchillas -- mismo mapa, mismo mecanismo de actualizarSimbolos115
+       de abajo (ya funciona para cualquier tag, no solo interruptores). */
+    &#x27;72T12&#x27;: [&#x27;CUC58&#x27;],
+    &#x27;72T11&#x27;: [&#x27;CUC55&#x27;],
+    &#x27;72T18&#x27;: [&#x27;CUC57&#x27;],
+    &#x27;72T19&#x27;: [&#x27;CUC53&#x27;],
+    &#x27;77I11&#x27;: [&#x27;CUC54&#x27;],
+    &#x27;73C11&#x27;: [&#x27;CUC62&#x27;],
+    &#x27;73C22&#x27;: [&#x27;CUC27&#x27;],
+    &#x27;73C29&#x27;: [&#x27;CUC28&#x27;],
+    &#x27;73C21&#x27;: [&#x27;CUC60&#x27;]
   };
   function actualizarSimbolos115(estados){
     if(!estados) return;
