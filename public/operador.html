@@ -9654,6 +9654,10 @@ var equipoSeleccionado345 = null;
 
 function solicitarConfirmacion(elem){
   if(_calib345) return;
+  /* BLOQUEO: 34.5kV no revisaba libGrabando aqui (a diferencia de
+     400kV/115kV) -- el modal se abria y se podia maniobrar aunque
+     el supervisor no hubiera dado INICIAR. */
+  if(!libGrabando) return;
   if(!elem) return;
   equipoSeleccionado345 = elem;
   var cerrado = elem.classList.contains(&#x27;closed&#x27;), estado = cerrado ? &#x27;CERRADO&#x27; : &#x27;ABIERTO&#x27;;

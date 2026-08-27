@@ -9524,6 +9524,10 @@ var equipoSeleccionado345 = null;
 
 function solicitarConfirmacion(elem){
   if(_calib345) return;
+  /* BLOQUEO: 34.5kV no revisaba libGrabando aqui (a diferencia de
+     400kV/115kV) -- el modal se abria y se podia maniobrar aunque
+     el supervisor no hubiera dado INICIAR. */
+  if(!libGrabando) return;
   if(!elem) return;
   equipoSeleccionado345 = elem;
   var cerrado = elem.classList.contains(&#x27;closed&#x27;), estado = cerrado ? &#x27;CERRADO&#x27; : &#x27;ABIERTO&#x27;;
@@ -13388,48 +13392,12 @@ window.addEventListener(&#x27;message&#x27;, function(e){
         }
       });
     }
-    if(e.data && e.data.type === 'ammper-alarma'){
-      var d = e.data;
-      enviarAlarma({
-        origin: 'S.E. ENERPYME',
-        desc:   d.tagReal || d.code,
-        event:  'DEVICE CHANGE OF STATE',
-        value:  d.estado || (d.despues === 'ABIERTO' ? 'APERTURA' : 'CIERRE'),
-        cls:    'red'
-      });
-    }
   });
-
-  /* ── Pantalla de Alarmas (ventana aparte) — antes no existía en
-     monitor.html: las maniobras aplicadas del lado del supervisor
-     nunca llegaban a ninguna alarma porque no había ni ventana ni
-     manejador. Se agrega igual que en operador.html. ── */
-  var alarmWin = null;
-  function abrirPantallaAlarmas(){
-    if(alarmWin && !alarmWin.closed) return alarmWin;
-    var w = window.screen && window.screen.availWidth ? window.screen.availWidth : 1600;
-    var h = window.screen && window.screen.availHeight ? window.screen.availHeight : 1000;
-    alarmWin = window.open('/scada_alarmas.html', 'AlarmasSCADA', 'left=1920,top=0,width='+w+',height='+h);
-    return alarmWin;
-  }
-  function enviarAlarma(alarma){
-    if(!alarmWin || alarmWin.closed) return;
-    try{ alarmWin.postMessage({type:'scada-alarm', alarm:alarma}, '*'); }catch(e){}
-  }
-  window.__abrirAlarmasManual = abrirPantallaAlarmas;
 
   var params = new URLSearchParams(window.location.search);
   var pre = params.get('session');
   if(pre){ document.getElementById('input-codigo').value = pre; entrarSesion(pre.toUpperCase()); }
 })();
 </script>
-
-<button id="btn-abrir-alarmas" onclick="window.__abrirAlarmasManual && window.__abrirAlarmasManual()"
-  style="position:fixed;right:10px;bottom:10px;z-index:9999;display:block;
-         background:#1a2a3d;color:#9fd6ff;border:1px solid #3a6fd8;
-         padding:8px 14px;border-radius:4px;font-family:Arial,sans-serif;
-         font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);">
-  Abrir pantalla de Alarmas
-</button>
 
 </body></html>
