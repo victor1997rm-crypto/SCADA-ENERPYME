@@ -3454,6 +3454,15 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     return;
   }
   if(e.data.type === &#x27;aplicar-maniobra&#x27;){
+    if(e.data.equipo === &#x27;drma38k0&#x27;){
+      /* DRMA38K0 no es un interruptor/cuchilla real (no tiene
+         classList &#x27;closed&#x27;/&#x27;open&#x27;) -- no puede pasar por
+         ejecutarDesdeModal como los demas equipos, solo refleja
+         el color rojo/verde. */
+      var boxDR = document.getElementById(&#x27;drma38k0&#x27;);
+      if(boxDR) boxDR.classList.toggle(&#x27;recierre-activo&#x27;, e.data.despues === &#x27;RECERRADO&#x27;);
+      return;
+    }
     var el = document.getElementById(e.data.equipo);
     if(!el) return;
     if(typeof equipoSeleccionado !== &#x27;undefined&#x27;) equipoSeleccionado = el;
@@ -7213,6 +7222,15 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     return;
   }
   if(e.data.type === &#x27;aplicar-maniobra&#x27;){
+    if(e.data.equipo === &#x27;drma38k0&#x27;){
+      /* DRMA38K0 no es un interruptor/cuchilla real (no tiene
+         classList &#x27;closed&#x27;/&#x27;open&#x27;) -- no puede pasar por
+         ejecutarDesdeModal como los demas equipos, solo refleja
+         el color rojo/verde. */
+      var boxDR = document.getElementById(&#x27;drma38k0&#x27;);
+      if(boxDR) boxDR.classList.toggle(&#x27;recierre-activo&#x27;, e.data.despues === &#x27;RECERRADO&#x27;);
+      return;
+    }
     var el = document.getElementById(e.data.equipo);
     if(!el) return;
     if(typeof equipoSeleccionado !== &#x27;undefined&#x27;) equipoSeleccionado = el;
@@ -9592,6 +9610,24 @@ function cerrarModal(){
   document.getElementById(&#x27;confirmModal&#x27;).style.display = &#x27;none&#x27;;
   equipoSeleccionado345 = null;
 }
+function actualizarVisualMimico345(){
+  function cerrado345(id){
+    var el = document.getElementById(id);
+    return el ? el.classList.contains(&#x27;closed&#x27;) : false;
+  }
+  if(window.parent &amp;&amp; window.parent !== window){
+    window.parent.postMessage({
+      type: &#x27;ammper-estado-345&#x27;,
+      estados: {
+        &#x27;5010&#x27;: cerrado345(&#x27;int1&#x27;),
+        &#x27;5020&#x27;: cerrado345(&#x27;int2&#x27;),
+        &#x27;5030&#x27;: cerrado345(&#x27;int3&#x27;),
+        &#x27;52T20&#x27;: cerrado345(&#x27;int4&#x27;),
+        &#x27;52T10&#x27;: cerrado345(&#x27;int5&#x27;)
+      }
+    }, &#x27;*&#x27;);
+  }
+}
 function ejecutarDesdeModal(accion){
   if(!equipoSeleccionado345) return;
   var c = equipoSeleccionado345.classList.contains(&#x27;closed&#x27;);
@@ -9618,6 +9654,7 @@ function ejecutarManiobra345(){
         antes:antes, despues:despues
       }, &#x27;*&#x27;);
     }
+    actualizarVisualMimico345();
   }
   cerrarModal();
 }
@@ -10511,6 +10548,15 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     return;
   }
   if(e.data.type === &#x27;aplicar-maniobra&#x27;){
+    if(e.data.equipo === &#x27;drma38k0&#x27;){
+      /* DRMA38K0 no es un interruptor/cuchilla real (no tiene
+         classList &#x27;closed&#x27;/&#x27;open&#x27;) -- no puede pasar por
+         ejecutarDesdeModal como los demas equipos, solo refleja
+         el color rojo/verde. */
+      var boxDR = document.getElementById(&#x27;drma38k0&#x27;);
+      if(boxDR) boxDR.classList.toggle(&#x27;recierre-activo&#x27;, e.data.despues === &#x27;RECERRADO&#x27;);
+      return;
+    }
     var el = document.getElementById(e.data.equipo);
     if(!el) return;
     if(typeof equipoSeleccionado !== &#x27;undefined&#x27;) equipoSeleccionado = el;
@@ -11367,6 +11413,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     if(e.data &amp;&amp; e.data.type === &#x27;recalcular-escala&#x27;) setTimeout(ajustarCanvasCover, 20);
     if(e.data &amp;&amp; e.data.type === &#x27;ammper-estado-400&#x27;) actualizarSimbolos400(e.data.estados);
     if(e.data &amp;&amp; e.data.type === &#x27;ammper-estado-115&#x27;) actualizarSimbolos115(e.data.estados);
+    if(e.data &amp;&amp; e.data.type === &#x27;ammper-estado-345&#x27;) actualizarSimbolos345(e.data.estados);
   });
 
   /* ============================================================
@@ -11456,6 +11503,35 @@ window.addEventListener(&#x27;message&#x27;, function(e){
       var lbl6 = estados.BUS2_ENR ? &#x27;115 kV&#x27; : &#x27;0.0 kV&#x27;;
       if(symbols.IND6.label !== lbl6){ symbols.IND6.label = lbl6; huboCambio = true; }
     }
+    if(huboCambio &amp;&amp; typeof render === &#x27;function&#x27;) render();
+  }
+
+  /* ============================================================
+     Refleja en el MIMICO el estado REAL de 34.5 kV. Los 5
+     interruptores (5010, 5020, 5030, 52T20, 52T10) tienen match
+     1:1 con un simbolo del diagrama general, sin duplicados.
+     ============================================================ */
+  var MAPA_SIMBOLOS_345 = {
+    &#x27;5010&#x27;: [&#x27;INT9&#x27;],
+    &#x27;5020&#x27;: [&#x27;INT8&#x27;],
+    &#x27;5030&#x27;: [&#x27;INT7&#x27;],
+    &#x27;52T20&#x27;: [&#x27;INT10&#x27;],
+    &#x27;52T10&#x27;: [&#x27;INT11&#x27;]
+  };
+  function actualizarSimbolos345(estados){
+    if(!estados) return;
+    var huboCambio = false;
+    Object.keys(MAPA_SIMBOLOS_345).forEach(function(tag){
+      var nuevoStatus = estados[tag] ? &#x27;cerrado&#x27; : &#x27;abierto&#x27;;
+      MAPA_SIMBOLOS_345[tag].forEach(function(symId){
+        var sym = symbols[symId];
+        if(!sym) return;
+        if(sym.status !== nuevoStatus){
+          sym.status = nuevoStatus;
+          huboCambio = true;
+        }
+      });
+    });
     if(huboCambio &amp;&amp; typeof render === &#x27;function&#x27;) render();
   }
 
@@ -13429,6 +13505,13 @@ window.addEventListener(&#x27;message&#x27;, function(e){
       });
     }
     if(e.data && e.data.type === 'ammper-estado-115'){
+      pages.forEach(function(p){
+        if(p.dataset.page === 'GENERAL' && p.contentWindow){
+          p.contentWindow.postMessage(e.data, '*');
+        }
+      });
+    }
+    if(e.data && e.data.type === 'ammper-estado-345'){
       pages.forEach(function(p){
         if(p.dataset.page === 'GENERAL' && p.contentWindow){
           p.contentWindow.postMessage(e.data, '*');
