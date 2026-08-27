@@ -13073,14 +13073,30 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     padding:6px 10px; overflow-y:auto; min-height:60px; max-height:200px;
     flex-shrink:0; font-size:9px; line-height:1.6;
   }
+  #mon-timer-row {
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:4px 10px; border-top:1px solid rgba(0,180,220,.1);
+    font-size:9px; color:#8fb0bd; flex-shrink:0;
+  }
+  #mon-timer-label { display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none; }
+  #mon-timer-label input { cursor:pointer; }
+  #mon-timer {
+    display:none; font-family:'Courier New',monospace; font-weight:700;
+    font-size:12px; letter-spacing:.05em; color:#5fffb0;
+  }
+  #mon-timer.activo { display:inline-block; }
 </style>
 
 <div id="lib-panel-mon">
   <div id="lib-header-mon">
-    <span id="lib-title-mon">⚡ ENTRENADOR</span>
+    <span id="lib-title-mon">Registro de movimientos</span>
     <span id="mon-estado">EN ESPERA</span>
   </div>
   <div id="lib-sesion-mon">Sesión: <b id="mon-codigo" style="color:#fff;letter-spacing:.06em;"></b></div>
+  <div id="mon-timer-row">
+    <label id="mon-timer-label"><input type="checkbox" id="mon-timer-toggle">Mostrar tiempo transcurrido</label>
+    <span id="mon-timer">00:00:00</span>
+  </div>
   <div id="lib-footer-mon">
     <button id="mon-btn-start" class="lib-btn-mon primary">INICIAR</button>
     <button id="mon-btn-finalizar" class="lib-btn-mon" disabled>FINALIZAR</button>
@@ -13150,6 +13166,41 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     document.getElementById('mon-btn-finalizar').disabled = (estado !== 'grabando');
   }
 
+  /* ── Cronómetro: tiempo transcurrido desde que se dio INICIAR ── */
+  var timerInicioTs = null;
+  var timerIntervalo = null;
+
+  function formatearDuracion(ms){
+    var totalSeg = Math.max(0, Math.floor(ms/1000));
+    var hh = Math.floor(totalSeg/3600);
+    var mm = Math.floor((totalSeg%3600)/60);
+    var ss = totalSeg%60;
+    function pad(n){ return (n<10?'0':'')+n; }
+    return pad(hh)+':'+pad(mm)+':'+pad(ss);
+  }
+
+  function pintarTimer(){
+    if(!timerInicioTs) return;
+    document.getElementById('mon-timer').textContent = formatearDuracion(Date.now() - timerInicioTs);
+  }
+
+  function iniciarTimer(inicioTs){
+    timerInicioTs = inicioTs || Date.now();
+    if(timerIntervalo) clearInterval(timerIntervalo);
+    pintarTimer();
+    timerIntervalo = setInterval(pintarTimer, 1000);
+  }
+
+  function detenerTimer(){
+    if(timerIntervalo){ clearInterval(timerIntervalo); timerIntervalo = null; }
+    timerInicioTs = null;
+    document.getElementById('mon-timer').textContent = '00:00:00';
+  }
+
+  document.getElementById('mon-timer-toggle').addEventListener('change', function(e){
+    document.getElementById('mon-timer').classList.toggle('activo', e.target.checked);
+  });
+
   async function entrarSesion(code){
     var err = document.getElementById('error-codigo');
     err.textContent = '';
@@ -13171,7 +13222,18 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     url.searchParams.set('session', code);
     window.history.replaceState({}, '', url.toString());
     fetch('/api/control', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({code:SESSION_CODE, accion:'conectar'})}).catch(function(){});
+      body: JSON.stringify({code:SESSION_CODE, accion:'conectar'})})
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(!data || !data.control) return;
+        setEstadoUI(data.control.estado);
+        // Si ya estaba grabando (p.ej. se recargó la página), retoma el cronómetro
+        // desde el inicioTs real en vez de reiniciarlo desde cero.
+        if(data.control.estado === 'grabando' && data.control.inicioTs){
+          iniciarTimer(data.control.inicioTs);
+        }
+      })
+      .catch(function(){});
     poll();
   }
 
@@ -13191,6 +13253,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
       body: JSON.stringify({code:SESSION_CODE, accion:'iniciar'})});
     var data = await r.json();
     setEstadoUI(data.control.estado);
+    iniciarTimer(data.control.inicioTs);
   });
 
   document.getElementById('mon-btn-finalizar').addEventListener('click', async function(){
@@ -13199,6 +13262,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
       body: JSON.stringify({code:SESSION_CODE, accion:'finalizar'})});
     var data = await r.json();
     setEstadoUI(data.control.estado);
+    detenerTimer();
     var segs = Math.round(data.duracionMs/1000);
     var mm = Math.floor(segs/60), ss = segs%60;
     var resumen = document.getElementById('mon-resumen');
@@ -13213,6 +13277,7 @@ window.addEventListener(&#x27;message&#x27;, function(e){
       body: JSON.stringify({code:SESSION_CODE, accion:'reset'})});
     var data = await r.json();
     setEstadoUI(data.control.estado);
+    detenerTimer();
     document.getElementById('mon-resumen').style.display = 'none';
     document.getElementById('mon-log').innerHTML = '';
     cursor = 0;
