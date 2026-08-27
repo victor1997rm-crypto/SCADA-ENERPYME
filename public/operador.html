@@ -2182,6 +2182,7 @@ function actualizarVisualBarras400(){
         A2011: _cerrado400(&#x27;cu1a&#x27;), A2013: _cerrado400(&#x27;cu1b&#x27;),
         A0012: _cerrado400(&#x27;cu2b&#x27;), A0013: _cerrado400(&#x27;cu2a&#x27;),
         A38K9: _cerrado400(&#x27;cu5&#x27;),
+        A38K7: _cerrado400(&#x27;cu-tr&#x27;),
         bus1: r.bus1, bus2: r.bus2
       }
     }, &#x27;*&#x27;);
@@ -4786,7 +4787,7 @@ try{
   &lt;div class=&quot;node-label&quot; id=&quot;lbl-cu3a&quot; style=&quot;left:68.5%;top:32.68%;&quot;&gt;72T19&lt;/div&gt;
   &lt;div class=&quot;node-label&quot; id=&quot;lbl-cu3b&quot; style=&quot;left:26.16%;top:56.05%;&quot;&gt;73C22&lt;/div&gt;
   &lt;!-- CUCHILLA TIERRA 73C19 — debajo de int1 (73C20) --&gt;
-  &lt;div class=&quot;elem cuchilla closed&quot; id=&quot;cu-tr-73c19&quot; style=&quot;top:69.93%;left:17.24%;width:75px;height:40px;&quot;
+  &lt;div class=&quot;elem cuchilla open&quot; id=&quot;cu-tr-73c19&quot; style=&quot;top:69.93%;left:17.24%;width:75px;height:40px;&quot;
        onclick=&quot;if(!window._modoCalib||!window._modoCalib())return;&quot;&gt;
     &lt;svg width=&quot;75&quot; height=&quot;40&quot; viewBox=&quot;0 0 75 40&quot; fill=&quot;none&quot; style=&quot;filter:drop-shadow(0 0 6px rgba(255,0,255,.7));&quot;&gt;
       &lt;!-- líneas de tierra (símbolo) --&gt;
@@ -4812,7 +4813,7 @@ try{
   &lt;div class=&quot;node-label&quot; id=&quot;lbl-cu5c&quot;  style=&quot;left:55.26%;top:55.76%;&quot;&gt;73C18&lt;/div&gt;
 
   &lt;!-- CUCHILLA TIERRA 73C17 — debajo de int2 (73C10) --&gt;
-  &lt;div class=&quot;elem cuchilla closed&quot; id=&quot;cu-tr-73c17&quot; style=&quot;top:69.69%;left:41.67%;width:75px;height:40px;&quot;
+  &lt;div class=&quot;elem cuchilla open&quot; id=&quot;cu-tr-73c17&quot; style=&quot;top:69.69%;left:41.67%;width:75px;height:40px;&quot;
        onclick=&quot;if(!window._modoCalib||!window._modoCalib())return;&quot;&gt;
     &lt;svg width=&quot;75&quot; height=&quot;40&quot; viewBox=&quot;0 0 75 40&quot; fill=&quot;none&quot; style=&quot;filter:drop-shadow(0 0 6px rgba(255,0,255,.7));&quot;&gt;
       &lt;line x1=&quot;14&quot; y1=&quot;12&quot; x2=&quot;14&quot; y2=&quot;28&quot; stroke=&quot;#ff44ff&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot;/&gt;
@@ -6369,7 +6370,10 @@ function actualizarVisualMimico115(){
         &#x27;73C22&#x27;: cerrado115(&#x27;cu3b&#x27;),
         &#x27;73C29&#x27;: cerrado115(&#x27;cu1a&#x27;),
         &#x27;73C21&#x27;: cerrado115(&#x27;cu3a&#x27;),
-        &#x27;73C28&#x27;: cerrado115(&#x27;cu2b&#x27;)
+        &#x27;73C28&#x27;: cerrado115(&#x27;cu2b&#x27;),
+        /* Cuchillas de tierra de 73C10 y 73C20. */
+        &#x27;73C17&#x27;: cerrado115(&#x27;cu-tr-73c17&#x27;),
+        &#x27;73C27&#x27;: cerrado115(&#x27;cu-tr-73c19&#x27;)
       }
     }, &#x27;*&#x27;);
   }
@@ -9784,7 +9788,13 @@ function actualizarVisualMimico345(){
         &#x27;5020&#x27;: cerrado345(&#x27;int2&#x27;),
         &#x27;5030&#x27;: cerrado345(&#x27;int3&#x27;),
         &#x27;52T20&#x27;: cerrado345(&#x27;int4&#x27;),
-        &#x27;52T10&#x27;: cerrado345(&#x27;int5&#x27;)
+        &#x27;52T10&#x27;: cerrado345(&#x27;int5&#x27;),
+        /* Cuchillas de tierra de 5010/5020/5030 (52T20 tambien tiene
+           tierra real -- ct4 -- pero no encontre simbolo propio para
+           ella en el MIMICO, asi que se queda fuera por ahora). */
+        &#x27;5010_Q7&#x27;: cerrado345(&#x27;ct1&#x27;),
+        &#x27;5020_Q7&#x27;: cerrado345(&#x27;ct2&#x27;),
+        &#x27;5030_Q7&#x27;: cerrado345(&#x27;ct3&#x27;)
       }
     }, &#x27;*&#x27;);
     /* 52T20 y 52T10 son los interruptores de enlace con 400kV: si
@@ -11657,7 +11667,10 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     A38K0:&#x27;INT3&#x27;, A08K0:&#x27;INT4&#x27;, A2010:&#x27;INT5&#x27;, A0010:&#x27;INT6&#x27;,
     A38K1:&#x27;CUC7&#x27;, A38K3:&#x27;CUC9&#x27;, A08K2:&#x27;CUC11&#x27;, A08K3:&#x27;CUC10&#x27;,
     A2011:&#x27;CUC12&#x27;, A2013:&#x27;CUC13&#x27;, A0013:&#x27;CUC14&#x27;, A0012:&#x27;CUC8&#x27;,
-    A38K9:&#x27;CUC5&#x27;
+    A38K9:&#x27;CUC5&#x27;,
+    /* Cuchilla de tierra compartida entre varias bahias -- aparece 2
+       veces dibujada en el MIMICO (igual patron que 73C10/73C20). */
+    A38K7: [&#x27;PT3&#x27;,&#x27;PT5&#x27;]
   };
   // Valores nominales de los indicadores de bus (IND1=BUS1 izq, IND2=BUS2
   // der) — se capturan una sola vez para poder restaurarlos; mientras
@@ -11667,14 +11680,17 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     if(!estados) return;
     var huboCambio = false;
     Object.keys(MAPA_SIMBOLOS_400).forEach(function(tag){
-      var symId = MAPA_SIMBOLOS_400[tag];
-      var sym = symbols[symId];
-      if(!sym) return;
+      var symIds = MAPA_SIMBOLOS_400[tag];
+      if(!Array.isArray(symIds)) symIds = [symIds];
       var nuevoStatus = estados[tag] ? &#x27;cerrado&#x27; : &#x27;abierto&#x27;;
-      if(sym.status !== nuevoStatus){
-        sym.status = nuevoStatus;
-        huboCambio = true;
-      }
+      symIds.forEach(function(symId){
+        var sym = symbols[symId];
+        if(!sym) return;
+        if(sym.status !== nuevoStatus){
+          sym.status = nuevoStatus;
+          huboCambio = true;
+        }
+      });
     });
     // BUS1 (IND1) / BUS2 (IND2): mismo criterio que en la página de
     // 400kV — el indicador NUNCA pierde su color verde, solo cambia el
@@ -11715,7 +11731,10 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     &#x27;73C22&#x27;: [&#x27;CUC27&#x27;],
     &#x27;73C29&#x27;: [&#x27;CUC28&#x27;],
     &#x27;73C21&#x27;: [&#x27;CUC60&#x27;],
-    &#x27;73C28&#x27;: [&#x27;CUC59&#x27;]
+    &#x27;73C28&#x27;: [&#x27;CUC59&#x27;],
+    /* Cuchillas de tierra de 73C10 y 73C20. */
+    &#x27;73C17&#x27;: [&#x27;PT13&#x27;],
+    &#x27;73C27&#x27;: [&#x27;PT6&#x27;]
   };
   function actualizarSimbolos115(estados){
     if(!estados) return;
@@ -11755,7 +11774,11 @@ if(document.getElementById(&#x27;lib-panel&#x27;)) document.getElementById(&#x27
     &#x27;5020&#x27;: [&#x27;INT8&#x27;],
     &#x27;5030&#x27;: [&#x27;INT7&#x27;],
     &#x27;52T20&#x27;: [&#x27;INT10&#x27;],
-    &#x27;52T10&#x27;: [&#x27;INT11&#x27;]
+    &#x27;52T10&#x27;: [&#x27;INT11&#x27;],
+    /* Cuchillas de tierra de 5010/5020/5030. */
+    &#x27;5010_Q7&#x27;: [&#x27;PT28&#x27;],
+    &#x27;5020_Q7&#x27;: [&#x27;PT27&#x27;],
+    &#x27;5030_Q7&#x27;: [&#x27;PT26&#x27;]
   };
   function actualizarSimbolos345(estados){
     if(!estados) return;
