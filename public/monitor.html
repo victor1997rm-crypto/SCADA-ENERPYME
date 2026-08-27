@@ -8646,7 +8646,7 @@ window.SCALE_345 = 1;
   &lt;/div&gt;
 
   &lt;!-- TP — igual al 400kV, blanco, stroke 3px --&gt;
-  &lt;div id=&quot;ref-tp-1&quot; style=&quot;left:722.826271px;top:583.032839px;position:absolute;cursor:move;z-index:9500;&quot;&gt;
+  &lt;div id=&quot;ref-tp-1&quot; style=&quot;left:722.826271px;top:583.032839px;position:absolute;cursor:move;z-index:1;&quot;&gt;
     &lt;svg width=&quot;40&quot; height=&quot;50&quot; viewBox=&quot;0 0 40 50&quot; fill=&quot;none&quot; style=&quot;display:block;pointer-events:none;&quot;&gt;
       &lt;path d=&quot;M 20,2 L 20,13&quot; stroke=&quot;#ffffff&quot; stroke-width=&quot;1.5&quot; stroke-linecap=&quot;round&quot;/&gt;
       &lt;path d=&quot;M 12,13 A 4,4 0 0,0 20,13 A 4,4 0 0,0 28,13&quot; stroke=&quot;#ffffff&quot; stroke-width=&quot;3&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;/&gt;
@@ -9019,49 +9019,56 @@ window.SCALE_345 = 1;
 
 &lt;/div&gt;&lt;!-- /wrap --&gt;
 &lt;script&gt;
-/* ── RELOJ ── */
-(function(){
-  function tick(){
-    var d=new Date();
-    var s=(&#x27;0&#x27;+d.getDate()).slice(-2)+&#x27;/&#x27;+(&#x27;0&#x27;+(d.getMonth()+1)).slice(-2)+&#x27;/&#x27;+String(d.getFullYear()).slice(-2)
-         +&#x27; &#x27;+(&#x27;0&#x27;+d.getHours()).slice(-2)+&#x27;:&#x27;+(&#x27;0&#x27;+d.getMinutes()).slice(-2)+&#x27;:&#x27;+(&#x27;0&#x27;+d.getSeconds()).slice(-2);
-    var el=document.getElementById(&#x27;header-clock&#x27;);
-    if(el) el.textContent=s;
-    setTimeout(tick,1000);
+/* ── RELOJ — copiado tal cual del de 400kV/115kV (antes esta
+   pagina tenia su propia version con setTimeout recursivo y un
+   restaurador de posicion desde localStorage que corria SIEMPRE,
+   incluso fuera de calibracion; si quedaba una posicion vieja
+   guardada de una sesion anterior, el reloj aparecia saltado en
+   cada carga de pagina). ── */
+function actualizarReloj(){
+  var a=new Date();
+  var hc=document.getElementById(&#x27;header-clock&#x27;);
+  if(hc){
+    var dd=String(a.getDate()).padStart(2,&#x27;0&#x27;),mm=String(a.getMonth()+1).padStart(2,&#x27;0&#x27;),
+        yy=String(a.getFullYear()).slice(-2),HH=String(a.getHours()).padStart(2,&#x27;0&#x27;),
+        MM=String(a.getMinutes()).padStart(2,&#x27;0&#x27;),SS=String(a.getSeconds()).padStart(2,&#x27;0&#x27;);
+    hc.textContent=dd+&#x27;/&#x27;+mm+&#x27;/&#x27;+yy+&#x27;  &#x27;+HH+&#x27;:&#x27;+MM+&#x27;:&#x27;+SS;
   }
-  tick();
-})();
+}
+actualizarReloj(); setInterval(actualizarReloj,1000);
 
-/* ── RELOJ DRAGGABLE ── */
+/* Reloj arrastrable -- igual que 400kV/115kV: nada de localStorage,
+   se puede arrastrar en cualquier momento (no solo en calibracion),
+   y siempre vuelve a su posicion de CSS al recargar la pagina. */
 (function(){
-  var cl = document.getElementById(&#x27;header-clock&#x27;);
+  var cl=document.getElementById(&#x27;header-clock&#x27;);
   if(!cl) return;
-  /* Restaurar posición guardada */
-  try{
-    var rp=JSON.parse(localStorage.getItem(&#x27;345kv_reloj_pos&#x27;)||&#x27;null&#x27;);
-    if(rp){ if(rp.left) cl.style.left=rp.left; if(rp.top) cl.style.top=rp.top; cl.style.transform=&#x27;none&#x27;; }
-  }catch(e){}
-  function onStartClock(e){
-    if(!_calib345) return;
-    e.preventDefault();
-    var p0=_pt345(e);
-    var sx=p0.x, sy=p0.y;
-    var sl=parseFloat(cl.style.left)||0, st=parseFloat(cl.style.top)||0;
-    function mv(e){ e.preventDefault(); var p=_pt345(e); var s=(window.SCALE_345||1); cl.style.left=(sl+(p.x-sx)/s)+&#x27;px&#x27;; cl.style.top=(st+(p.y-sy)/s)+&#x27;px&#x27;; cl.style.transform=&#x27;none&#x27;; }
-    function up(){
-      document.removeEventListener(&#x27;mousemove&#x27;,mv);
-      document.removeEventListener(&#x27;mouseup&#x27;,up);
-      document.removeEventListener(&#x27;touchmove&#x27;,mv);
-      document.removeEventListener(&#x27;touchend&#x27;,up);
-      try{ localStorage.setItem(&#x27;345kv_reloj_pos&#x27;,JSON.stringify({left:cl.style.left,top:cl.style.top})); }catch(e){}
-    }
-    document.addEventListener(&#x27;mousemove&#x27;,mv);
-    document.addEventListener(&#x27;mouseup&#x27;,up);
-    document.addEventListener(&#x27;touchmove&#x27;,mv,{passive:false});
-    document.addEventListener(&#x27;touchend&#x27;,up);
+  var wrapRef = document.getElementById(&#x27;page-stage-345&#x27;);
+  if(!wrapRef) return;
+  var dx=0,dy=0,x=0,y=0,dragging=false;
+  cl.addEventListener(&#x27;mousedown&#x27;,function(e){
+    e.preventDefault(); e.stopPropagation();
+    dragging=true;
+    var r = wrapRef.getBoundingClientRect();
+    var rc = cl.getBoundingClientRect();
+    cl.style.position=&#x27;absolute&#x27;;
+    cl.style.transform=&#x27;none&#x27;;
+    cl.style.left=((rc.left-r.left)/r.width*100).toFixed(3)+&#x27;%&#x27;;
+    cl.style.top=((rc.top-r.top)/r.height*100).toFixed(3)+&#x27;%&#x27;;
+    x=e.clientX; y=e.clientY;
+    document.addEventListener(&#x27;mousemove&#x27;,mv,true);
+    document.addEventListener(&#x27;mouseup&#x27;,up,true);
+  });
+  function mv(e){
+    if(!dragging) return;
+    var r = wrapRef.getBoundingClientRect();
+    var curLeftPx=(parseFloat(cl.style.left)||0)/100*r.width;
+    var curTopPx=(parseFloat(cl.style.top)||0)/100*r.height;
+    cl.style.left=((curLeftPx+(e.clientX-x))/r.width*100).toFixed(3)+&#x27;%&#x27;;
+    cl.style.top=((curTopPx+(e.clientY-y))/r.height*100).toFixed(3)+&#x27;%&#x27;;
+    x=e.clientX; y=e.clientY;
   }
-  cl.addEventListener(&#x27;mousedown&#x27;, onStartClock);
-  cl.addEventListener(&#x27;touchstart&#x27;, onStartClock, {passive:false});
+  function up(){ dragging=false; document.removeEventListener(&#x27;mousemove&#x27;,mv,true); document.removeEventListener(&#x27;mouseup&#x27;,up,true); }
 })();
 
 /* ── 34.5 kV — CALIBRACIÓN Y DRAG ── */
