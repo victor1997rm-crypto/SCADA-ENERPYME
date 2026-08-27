@@ -13034,10 +13034,10 @@ window.addEventListener(&#x27;message&#x27;, function(e){
   }
   #lib-header-mon {
     background:rgba(0,30,50,.9); padding:6px 10px;
-    display:flex; align-items:center; justify-content:space-between;
+    display:flex; align-items:center; gap:6px;
     border-bottom:1px solid rgba(0,180,220,.2); flex-shrink:0;
   }
-  #lib-title-mon { color:#ffd040; font-weight:700; font-size:11px; letter-spacing:.06em; }
+  #lib-title-mon { color:#ffd040; font-weight:700; font-size:11px; letter-spacing:.06em; flex:1; }
   #mon-estado {
     font-size:8px; padding:2px 6px; border-radius:8px;
     background:rgba(255,255,255,.08); color:#aaa;
@@ -13078,33 +13078,41 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     padding:4px 10px; border-top:1px solid rgba(0,180,220,.1);
     font-size:9px; color:#8fb0bd; flex-shrink:0;
   }
-  #mon-timer-label { display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none; }
-  #mon-timer-label input { cursor:pointer; }
   #mon-timer {
-    display:none; font-family:'Courier New',monospace; font-weight:700;
+    font-family:'Courier New',monospace; font-weight:700;
     font-size:12px; letter-spacing:.05em; color:#5fffb0;
   }
-  #mon-timer.activo { display:inline-block; }
+  #mon-btn-min {
+    border:1px solid rgba(0,180,220,.3); background:rgba(0,40,60,.6); color:#7ee8ff;
+    border-radius:3px; width:18px; height:18px; line-height:1; cursor:pointer;
+    font-size:11px; font-weight:700; padding:0; flex-shrink:0;
+  }
+  #mon-btn-min:hover { background:rgba(0,80,120,.6); color:#fff; }
+  #lib-panel-mon.minimizado #lib-body-mon { display:none; }
+  #lib-panel-mon.minimizado { width:auto; }
 </style>
 
 <div id="lib-panel-mon">
   <div id="lib-header-mon">
     <span id="lib-title-mon">Registro de movimientos</span>
     <span id="mon-estado">EN ESPERA</span>
+    <button id="mon-btn-min" title="Minimizar">─</button>
   </div>
-  <div id="lib-sesion-mon">Sesión: <b id="mon-codigo" style="color:#fff;letter-spacing:.06em;"></b></div>
-  <div id="mon-timer-row">
-    <label id="mon-timer-label"><input type="checkbox" id="mon-timer-toggle">Mostrar tiempo transcurrido</label>
-    <span id="mon-timer">00:00:00</span>
+  <div id="lib-body-mon">
+    <div id="lib-sesion-mon">Sesión: <b id="mon-codigo" style="color:#fff;letter-spacing:.06em;"></b></div>
+    <div id="mon-timer-row">
+      <span>Tiempo transcurrido</span>
+      <span id="mon-timer">00:00:00</span>
+    </div>
+    <div id="lib-footer-mon">
+      <button id="mon-btn-start" class="lib-btn-mon primary">INICIAR</button>
+      <button id="mon-btn-finalizar" class="lib-btn-mon" disabled>FINALIZAR</button>
+      <button id="mon-btn-reset" class="lib-btn-mon danger">RESET</button>
+    </div>
+    <div id="mon-resumen"></div>
+    <div id="mon-log-title">MOVIMIENTOS EN VIVO</div>
+    <div id="mon-log"></div>
   </div>
-  <div id="lib-footer-mon">
-    <button id="mon-btn-start" class="lib-btn-mon primary">INICIAR</button>
-    <button id="mon-btn-finalizar" class="lib-btn-mon" disabled>FINALIZAR</button>
-    <button id="mon-btn-reset" class="lib-btn-mon danger">RESET</button>
-  </div>
-  <div id="mon-resumen"></div>
-  <div id="mon-log-title">MOVIMIENTOS EN VIVO</div>
-  <div id="mon-log"></div>
 </div>
 
 <script>
@@ -13197,8 +13205,11 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     document.getElementById('mon-timer').textContent = '00:00:00';
   }
 
-  document.getElementById('mon-timer-toggle').addEventListener('change', function(e){
-    document.getElementById('mon-timer').classList.toggle('activo', e.target.checked);
+  document.getElementById('mon-btn-min').addEventListener('click', function(){
+    var panel = document.getElementById('lib-panel-mon');
+    var min = panel.classList.toggle('minimizado');
+    document.getElementById('mon-btn-min').textContent = min ? '▢' : '─';
+    document.getElementById('mon-btn-min').title = min ? 'Restaurar' : 'Minimizar';
   });
 
   async function entrarSesion(code){
@@ -13268,8 +13279,46 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     var resumen = document.getElementById('mon-resumen');
     resumen.style.display = 'block';
     resumen.innerHTML = '<b style="color:#5fffb0;">Tiempo total: '+mm+'m '+ss+'s</b><br>'
-      + '<span style="color:#8fb0bd;">'+data.maniobras.length+' maniobra(s) durante el ejercicio.</span>';
+      + '<span style="color:#8fb0bd;">'+data.maniobras.length+' maniobra(s) durante el ejercicio.</span><br>'
+      + '<button id="mon-btn-descargar" class="lib-btn-mon primary" style="margin-top:6px;width:100%;">Descargar registro</button>';
+    document.getElementById('mon-btn-descargar').addEventListener('click', function(){
+      descargarRegistro(SESSION_CODE, data.control, data.duracionMs, data.maniobras);
+    });
   });
+
+  /* ── Descarga del registro de la sesion (tiempo + cada maniobra) ── */
+  function descargarRegistro(code, control, duracionMs, maniobras){
+    function fmtFecha(ts){
+      if(!ts) return '—';
+      return new Date(ts).toLocaleString('es-MX', {hour12:false});
+    }
+    var segs = Math.round(duracionMs/1000);
+    var mm = Math.floor(segs/60), ss = segs%60;
+    var lineas = [];
+    lineas.push('=== REGISTRO DE SESION SCADA -- ENERPYME ===');
+    lineas.push('Codigo de sesion: ' + code);
+    lineas.push('Inicio: ' + fmtFecha(control.inicioTs));
+    lineas.push('Fin: ' + fmtFecha(control.finTs));
+    lineas.push('Duracion total: ' + mm + 'm ' + ss + 's');
+    lineas.push('Maniobras registradas: ' + maniobras.length);
+    lineas.push('');
+    lineas.push('--- Movimientos ---');
+    maniobras.forEach(function(m){
+      var hora = new Date(m.ts).toLocaleTimeString('es-MX', {hour12:false});
+      lineas.push('[' + hora + '] [' + m.pagina + '] ' + (m.tag || m.equipo) + ' -- ' + m.antes + ' -> ' + m.despues);
+    });
+    var texto = lineas.join('\n');
+    var blob = new Blob([texto], {type:'text/plain;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var stamp = new Date(control.finTs || Date.now()).toISOString().slice(0,19).replace(/[:T]/g,'-');
+    a.href = url;
+    a.download = 'sesion_' + code + '_' + stamp + '.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  }
 
   document.getElementById('mon-btn-reset').addEventListener('click', async function(){
     if(!SESSION_CODE) return;
@@ -13339,12 +13388,48 @@ window.addEventListener(&#x27;message&#x27;, function(e){
         }
       });
     }
+    if(e.data && e.data.type === 'ammper-alarma'){
+      var d = e.data;
+      enviarAlarma({
+        origin: 'S.E. ENERPYME',
+        desc:   d.tagReal || d.code,
+        event:  'DEVICE CHANGE OF STATE',
+        value:  d.estado || (d.despues === 'ABIERTO' ? 'APERTURA' : 'CIERRE'),
+        cls:    'red'
+      });
+    }
   });
+
+  /* ── Pantalla de Alarmas (ventana aparte) — antes no existía en
+     monitor.html: las maniobras aplicadas del lado del supervisor
+     nunca llegaban a ninguna alarma porque no había ni ventana ni
+     manejador. Se agrega igual que en operador.html. ── */
+  var alarmWin = null;
+  function abrirPantallaAlarmas(){
+    if(alarmWin && !alarmWin.closed) return alarmWin;
+    var w = window.screen && window.screen.availWidth ? window.screen.availWidth : 1600;
+    var h = window.screen && window.screen.availHeight ? window.screen.availHeight : 1000;
+    alarmWin = window.open('/scada_alarmas.html', 'AlarmasSCADA', 'left=1920,top=0,width='+w+',height='+h);
+    return alarmWin;
+  }
+  function enviarAlarma(alarma){
+    if(!alarmWin || alarmWin.closed) return;
+    try{ alarmWin.postMessage({type:'scada-alarm', alarm:alarma}, '*'); }catch(e){}
+  }
+  window.__abrirAlarmasManual = abrirPantallaAlarmas;
 
   var params = new URLSearchParams(window.location.search);
   var pre = params.get('session');
   if(pre){ document.getElementById('input-codigo').value = pre; entrarSesion(pre.toUpperCase()); }
 })();
 </script>
+
+<button id="btn-abrir-alarmas" onclick="window.__abrirAlarmasManual && window.__abrirAlarmasManual()"
+  style="position:fixed;right:10px;bottom:10px;z-index:9999;display:block;
+         background:#1a2a3d;color:#9fd6ff;border:1px solid #3a6fd8;
+         padding:8px 14px;border-radius:4px;font-family:Arial,sans-serif;
+         font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);">
+  Abrir pantalla de Alarmas
+</button>
 
 </body></html>
