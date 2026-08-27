@@ -421,7 +421,9 @@ try{
       font-family:&quot;Courier New&quot;,monospace; font-size:11px; font-weight:700;
       padding:3px 12px; margin-top:3px; white-space:nowrap;
       letter-spacing:.08em; background:transparent;
+      cursor:pointer; transition:border-color .15s,color .15s;
     }
+    .acom-box.recierre-activo { border-color:#ff2222; color:#ff8888; }
     .acom-arrow {
       width:0; height:0; margin-top:2px;
       border-left:8px solid transparent;
@@ -882,7 +884,7 @@ ke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot;/&gt;
 
 &lt;div class=&quot;acom-wrap&quot; id=&quot;acom-wrap&quot; style=&quot;position:absolute;left:63.034%;top:3.65%;z-index:150;cursor:default;user-select:none;display:flex;flex-direction:column;align-items:center;background:transparent;&quot;&gt;
   &lt;div class=&quot;acom-text&quot;&gt;LT ENR - A38K0 - QPM&lt;br&gt;HACIA S.E. QUERETARO POTENCIA MANIOBRAS&lt;/div&gt;
-  &lt;div class=&quot;acom-box&quot;&gt;DRMA38K0&lt;/div&gt;
+  &lt;div class=&quot;acom-box&quot; id=&quot;drma38k0&quot;&gt;DRMA38K0&lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;acom-wrap&quot; id=&quot;at01-info&quot; style=&quot;position:absolute;left:73.41%;top:70.139%;z-index:150;cursor:default;user-select:none;display:flex;flex-direction:column;align-items:center;background:transparent;gap:0;&quot;&gt;
   &lt;div style=&quot;text-align:center;font-family:Arial,sans-serif;font-size:6px;color:#aaaaaa;line-height:1.6;white-space:nowrap;letter-spacing:.04em;&quot;&gt;
@@ -3381,6 +3383,35 @@ document.getElementById(&#x27;wrap&#x27;).addEventListener(&#x27;mousedown&#x27;
 })();
 &lt;/script&gt;
 
+&lt;script&gt;
+/* ============================================================
+   RECIERRE DRMA38K0 (400 kV) -- simulacro de recierre de la LT
+   ENR-A38K0-QPM. Solo reacciona si el Entrenador esta grabando
+   (mismo libGrabando que ya usan los CTL de interruptores/
+   cuchillas de esta pagina). Al presionarlo alterna el contorno
+   verde/rojo y avisa via _reportarRecierreA38K0(antes,despues),
+   que por defecto no hace nada -- el wrapper MODO OPERADOR la
+   redefine para mandarlo a /api/maniobra igual que cualquier otra
+   maniobra real, y asi aparece solo en el grabador del supervisor.
+   ============================================================ */
+window._reportarRecierreA38K0 = window._reportarRecierreA38K0 || function(){};
+(function(){
+  function toggleRecierreA38K0(){
+    if(typeof libGrabando !== 'undefined' &amp;&amp; !libGrabando) return;
+    var box = document.getElementById('drma38k0');
+    if(!box) return;
+    var antes = box.classList.contains('recierre-activo') ? 'RECERRADO' : 'NORMAL';
+    box.classList.toggle('recierre-activo');
+    var despues = box.classList.contains('recierre-activo') ? 'RECERRADO' : 'NORMAL';
+    window._reportarRecierreA38K0(antes, despues);
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    var box = document.getElementById('drma38k0');
+    if(box) box.addEventListener('click', toggleRecierreA38K0);
+  });
+})();
+&lt;/script&gt;
+
 
 &lt;script&gt;
 /* ============================================================
@@ -3858,7 +3889,9 @@ try{
       font-family:&quot;Courier New&quot;,monospace; font-size:11px; font-weight:700;
       padding:3px 12px; margin-top:3px; white-space:nowrap;
       letter-spacing:.08em; background:transparent;
+      cursor:pointer; transition:border-color .15s,color .15s;
     }
+    .acom-box.recierre-activo { border-color:#ff2222; color:#ff8888; }
     .acom-arrow {
       width:0; height:0; margin-top:2px;
       border-left:8px solid transparent;
@@ -7588,7 +7621,9 @@ window.addEventListener(&#x27;message&#x27;, function(e){
       font-family:&quot;Courier New&quot;,monospace; font-size:11px; font-weight:700;
       padding:3px 12px; margin-top:3px; white-space:nowrap;
       letter-spacing:.08em; background:transparent;
+      cursor:pointer; transition:border-color .15s,color .15s;
     }
+    .acom-box.recierre-activo { border-color:#ff2222; color:#ff8888; }
     .acom-arrow {
       width:0; height:0; margin-top:2px;
       border-left:8px solid transparent;
@@ -13132,15 +13167,21 @@ window.addEventListener(&#x27;message&#x27;, function(e){
 
   function pintarLog(items){
     var log = document.getElementById('mon-log');
+    var ETIQUETAS = {
+      'ABIERTO':   {texto:'ABRIÓ',      color:'#ff6633'},
+      'CERRADO':   {texto:'CERRÓ',      color:'#00ee66'},
+      'RECERRADO': {texto:'RECIERRE',   color:'#ff9933'},
+      'NORMAL':    {texto:'NORMALIZÓ',  color:'#00ee66'}
+    };
     items.forEach(function(m){
       var row = document.createElement('div');
-      var color = m.despues === 'ABIERTO' ? '#ff6633' : '#00ee66';
+      var info = ETIQUETAS[m.despues] || {texto:m.despues, color:'#8fb0bd'};
       var hora = new Date(m.ts).toLocaleTimeString('es-MX', {hour12:false});
       row.style.cssText = 'padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05);';
       row.innerHTML = '<span style="color:#4a8a80;">'+hora+'</span> '
         + '<span style="color:#8fb0bd;">['+m.pagina+']</span> '
         + '<b>'+(m.tag||m.equipo)+'</b> '
-        + '<span style="color:'+color+';">'+(m.despues==='ABIERTO'?'ABRIÓ':'CERRÓ')+'</span>';
+        + '<span style="color:'+info.color+';">'+info.texto+'</span>';
       log.appendChild(row);
     });
     log.scrollTop = log.scrollHeight;
