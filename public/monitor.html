@@ -6292,6 +6292,9 @@ function actualizarVisualMimico115(){
         &#x27;73C29&#x27;: cerrado115(&#x27;cu1a&#x27;),
         &#x27;73C21&#x27;: cerrado115(&#x27;cu3a&#x27;),
         &#x27;73C28&#x27;: cerrado115(&#x27;cu2b&#x27;),
+        /* Cuchilla lado-bus de 73C10 (aparece 2 veces en el mimico,
+           igual que el propio interruptor 73C10). */
+        &#x27;73C19&#x27;: cerrado115(&#x27;cu1b&#x27;),
         /* Cuchillas de tierra de 73C10 y 73C20. */
         &#x27;73C17&#x27;: cerrado115(&#x27;cu-tr-73c17&#x27;),
         &#x27;73C27&#x27;: cerrado115(&#x27;cu-tr-73c19&#x27;)
@@ -11539,7 +11542,9 @@ window.addEventListener(&#x27;message&#x27;, function(e){
     &#x27;73C28&#x27;: [&#x27;CUC59&#x27;],
     /* Cuchillas de tierra de 73C10 y 73C20. */
     &#x27;73C17&#x27;: [&#x27;PT13&#x27;],
-    &#x27;73C27&#x27;: [&#x27;PT6&#x27;]
+    &#x27;73C27&#x27;: [&#x27;PT6&#x27;],
+    /* Cuchilla lado-bus de 73C10 (aparece 2 veces en el mimico). */
+    &#x27;73C19&#x27;: [&#x27;CUC40&#x27;,&#x27;CUC41&#x27;]
   };
   function actualizarSimbolos115(estados){
     if(!estados) return;
