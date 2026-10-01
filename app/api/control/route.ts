@@ -28,3 +28,5 @@ export async function GET(req: NextRequest) {
   const maniobras = await obtenerManiobrasDesde(code, desde);
   return NextResponse.json({ maniobras, siguienteDesde: desde + maniobras.length });
 }
+
+
