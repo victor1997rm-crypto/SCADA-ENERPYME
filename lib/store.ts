@@ -202,3 +202,5 @@ export async function resetSesion(code: string): Promise<void> {
   }
   memStore.set(code, { maniobras: [], control, createdAt: Date.now(), alarmas: memStore.get(code)?.alarmas ?? [] });
 }
+
+
